@@ -30,12 +30,59 @@
  */
 
 #include "ippe.h"
-#include "matd.h"
 
 namespace ippe {
 
 
 
+void homographyFromSquarePoints(matd_t *_targetPts, float halfLength, matd_t *_H)
+{
+    assert(_targetPts->nrows == 4 && _targetPts->ncols == 2);
+    
+    if (_H != nullptr)
+        matd_destroy(_H);
+    _H = matd_create(3, 3);
+    
+    double p1x = -MATD_EL(_targetPts, 0, 0);
+    double p1y = -MATD_EL(_targetPts, 0, 1);
+    
+    double p2x = -MATD_EL(_targetPts, 1, 0);
+    double p2y = -MATD_EL(_targetPts, 1, 1);
+    
+    double p3x = -MATD_EL(_targetPts, 2, 0);
+    double p3y = -MATD_EL(_targetPts, 2, 1);
+    
+    double p4x = -MATD_EL(_targetPts, 3, 0);
+    double p4y = -MATD_EL(_targetPts, 3, 1);
+    
+    /* analytic solution */
+    double detsInv = -1 / (halfLength * (p1x * p2y - p2x * p1y - p1x * p4y + p2x * p3y - p3x * p2y + p4x * p1y
+                                         + p3x * p4y - p4x * p3y));
+    
+    MATD_EL(_H, 0, 0) = detsInv * (p1x * p3x * p2y - p2x * p3x * p1y - p1x * p4x * p2y + p2x * p4x * p1y 
+                                 - p1x * p3x * p4y + p1x * p4x * p3y + p2x * p3x * p4y - p2x * p4x * p3y);
+    
+    MATD_EL(_H, 0, 1) = detsInv * (p1x * p2x * p3y - p1x * p3x * p2y - p1x * p2x * p4y + p2x * p4x * p1y
+                                 + p1x * p3x * p4y - p3x * p4x * p1y - p2x * p4x * p3y + p3x * p4x * p2y);
+    
+    MATD_EL(_H, 0, 2) = detsInv * halfLength * (p1x * p2x * p3y - p2x * p3x * p1y - p1x * p2x * p4y + p1x * p4x * p2y
+                                              - p1x * p4x * p3y + p3x * p4x * p1y + p2x * p3x * p4y - p3x * p4x * p2y);
+    
+    MATD_EL(_H, 1, 0) = detsInv * (p1x * p2y * p3y - p2x * p1y * p3y - p1x * p2y * p4y + p2x * p1y * p4y
+                                 - p3x * p1y * p4y + p4x * p1y * p3y + p3x * p2y * p4y - p4x * p2y * p3y);
+    
+    MATD_EL(_H, 1, 1) = detsInv * (p2x * p1y * p3y - p3x * p1y * p2y - p1x * p2y * p4y + p4x * p1y * p2y
+                                 + p1x * p3y * p4y - p4x * p1y * p3y - p2x * p3y * p4y + p3x * p2y * p4y);
+    
+    MATD_EL(_H, 1, 2) = detsInv * halfLength * (p1x * p2y * p3y - p3x * p1y * p2y - p2x * p1y * p4y + p4x * p1y * p2y
+                                              - p1x * p3y * p4y + p3x * p1y * p4y + p2x * p3y * p4y - p4x * p2y * p3y);
+    
+    MATD_EL(_H, 2, 0) = -detsInv * (p1x * p3y - p3x * p1y - p1x * p4y - p2x * p3y + p3x * p2y + p4x * p1y + p2x * p4y - p4x * p2y);
+    
+    MATD_EL(_H, 2, 1) =  detsInv * (p1x * p2y - p2x * p1y - p1x * p3y + p3x * p1y + p2x * p4y - p4x * p2y - p3x * p4y + p4x * p3y);
+    
+    MATD_EL(_H, 2, 2) = 1.0;
+}
 
 } /* namespace ippe */
 

@@ -54,9 +54,9 @@ namespace ippe {
  *                     meters, etc.)
  * The square is defined in object coordinates on the plane z=0 and centred at the origin. Therefore its four points in
  * object coordinates are given by:
- *   point 0: [-squareLength / 2.0, squareLength / 2.0, 0]
- *   point 1: [squareLength / 2.0, squareLength / 2.0, 0]
- *   point 2: [squareLength / 2.0, -squareLength / 2.0, 0]
+ *   point 0: [-squareLength / 2.0,  squareLength / 2.0, 0]
+ *   point 1: [ squareLength / 2.0,  squareLength / 2.0, 0]
+ *   point 2: [ squareLength / 2.0, -squareLength / 2.0, 0]
  *   point 3: [-squareLength / 2.0, -squareLength / 2.0, 0]
  * @param imagePoints Array of four corresponding image points, 1x4/4x1 2-channel. Note that the points should be
  *                    ordered to correspond with points 0, 1, 2 and 3.
@@ -84,7 +84,7 @@ void solvePoseOfCentredSquare(float squareLength, matd_t imagePoints, matd_t *ca
  *  point 2: [ squareLength / 2.0, -squareLength / 2.0]
  *  point 3: [-squareLength / 2.0, -squareLength / 2.0]
  *
- * @param _targetPts Array of four corresponding target points, 1x4/4x1 2-channel. Note that the points should be
+ * @param _targetPts Array of four corresponding target points, 4x2. Note that the points should be
  *                   ordered to correspond with points 0, 1, 2 and 3.
  * @param halfLength the square's half length (i.e. squareLength/2.0)
  * @param _R1 Rotation solution from IPPE, 3x3 1-channel float
