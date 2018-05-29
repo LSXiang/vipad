@@ -39,3 +39,7 @@
 # KDevelop IDE
 /.kdev4
 *.kdev4
+
+# Backup
+*.bak
+*~
