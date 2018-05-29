@@ -8,7 +8,9 @@
 # Copyright (c) 2018, The Akatsuki. All rights reserved.
 #
 
+add_subdirectory(common)
 add_subdirectory(apriltag)
+add_subdirectory(ippe)
 
 aux_source_directory(${CMAKE_CURRENT_SOURCE_DIR} pnp_src)
 add_library(pnp_lib SHARED STATIC ${pnp_src})

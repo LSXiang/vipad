@@ -162,6 +162,7 @@ int main(int argc, char *argv[])
             matd_destroy(R_t);
             
             getRelativeTransform(0.1, 2.4908279215754123e+03, 2.4935314568583112e+03, 3.4745731382095448e+02, 2.4094331871742105e+02, det->p);
+//             getRelativeTransform2(0.1, 2.4908279215754123e+03, 2.4935314568583112e+03, 3.4745731382095448e+02, 2.4094331871742105e+02, det->p);
         }
         
         zarray_destroy(detections);
@@ -202,6 +203,8 @@ void getRelativeTransform(double tag_size, double fx, double fy, double px, doub
     imgPts.push_back(cv::Point2f(p[2][0], p[2][1]));
     imgPts.push_back(cv::Point2f(p[3][0], p[3][1]));
 
+//     cout << imgPts << endl;
+    
     cv::Mat rvec, tvec;
     cv::Matx33f cameraMatrix(
                             fx, 0, px,
@@ -245,13 +248,12 @@ void getRelativeTransform(double tag_size, double fx, double fy, double px, doub
     /*******************************************************************************************************/
     aruco::solvePnP(objPts, imgPts, cameraMatrix, distParam, rvec, tvec);
     cv::Rodrigues(rvec, r);
+//     cout << r << endl;
     cv::Vec3d tt(tvec.at<double>(0), tvec.at<double>(1), tvec.at<double>(2));
     ttt = - r.t() * tt;
     cout << "x y z &&&& : " << ttt[0] <<  ",\t" << ttt[1] << ",\t" << ttt[2] << endl;
     
 }
-
-
 
 
 
