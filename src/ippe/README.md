@@ -16,7 +16,7 @@ please cite our paper in your work:
 
 Please contact Toby (toby.collins@gmail.com) if you have any questions about the code, paper and IPPE.
 
-You can go [here] (https://github.com/tobycollins/IPPE) for a more detailed.
+You can go [here](https://github.com/tobycollins/IPPE) for a more detailed.
 
 ## Brief Introduction
 
