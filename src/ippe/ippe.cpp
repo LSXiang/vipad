@@ -38,6 +38,93 @@
 namespace ippe {
 
 
+void ippeComputeTranslation(matd_t *_objectPoints, matd_t *_imgPoints, matd_t *_R, matd_t *_t)
+{
+    /**
+     * This is solved by building the linear system At = b, where t corresponds to the (ALL_DICTS) translation.
+     * This is then inverted with the associated normal equations to give t = inv(transpose(A)*A)*transpose(A)*b
+     * For efficiency we only store the coefficients of (transpose(A)*A) and (transpose(A)*b)
+     */
+    assert(_R->nrows == 3 && _R->ncols == 3);
+    assert(_objectPoints->ncols == 3);
+    assert(_imgPoints->ncols == 2);
+    assert(_objectPoints->nrows == _imgPoints->nrows);
+    
+    int numPts = _objectPoints->nrows;
+    
+    if (_t != nullptr) matd_destroy(_t);
+    _t = matd_create(3, 1);
+    
+    /* coefficients of (transpose(A)*A) */
+    double ATA00 = numPts;
+    double ATA02 = 0;
+    double ATA11 = numPts;
+    double ATA12 = 0;
+    double ATA20 = 0;
+    double ATA21 = 0;
+    double ATA22 = 0;
+
+    /* coefficients of (transpose(A)*b) */
+    double ATb0 = 0;
+    double ATb1 = 0;
+    double ATb2 = 0;
+
+    /* S  gives inv(transpose(A)*A)/det(A)^2 */
+    double S00, S01, S02;
+    double S10, S11, S12;
+    double S20, S21, S22;
+
+    double rx, ry, rz;
+    double a2;
+    double b2;
+    double bx, by;
+    
+    /* now loop through each point and increment the coefficients */
+    for (int i = 0; i < numPts; i++) {
+        /* rotation(3x3) * vector(3 * 1) */
+        rx = MATD_EL(_R, 0, 0) * MATD_EL(_objectPoints, i, 0) + MATD_EL(_R, 0, 1) * MATD_EL(_objectPoints, i, 1)
+            + MATD_EL(_R, 0, 2) * MATD_EL(_objectPoints, i, 2);
+        ry = MATD_EL(_R, 1, 0) * MATD_EL(_objectPoints, i, 0) + MATD_EL(_R, 1, 1) * MATD_EL(_objectPoints, i, 1)
+            + MATD_EL(_R, 1, 2) * MATD_EL(_objectPoints, i, 2);
+        rz = MATD_EL(_R, 2, 0) * MATD_EL(_objectPoints, i, 0) + MATD_EL(_R, 2, 1) * MATD_EL(_objectPoints, i, 1)
+            + MATD_EL(_R, 2, 2) * MATD_EL(_objectPoints, i, 2);
+            
+        a2 = -MATD_EL(_imgPoints, i, 0);
+        b2 = -MATD_EL(_imgPoints, i, 1);
+        
+        ATA02 = ATA02 + a2;
+        ATA12 = ATA12 + b2;
+        ATA20 = ATA20 + a2;
+        ATA21 = ATA21 + b2;
+        ATA22 = ATA22 + a2 * a2 + b2 * b2;
+        
+        bx = MATD_EL(_imgPoints, i, 0) * rz - rx;
+        by = MATD_EL(_imgPoints, i, 1) * rz - ry;
+        
+        ATb0 = ATb0 + bx;
+        ATb1 = ATb1 + by;
+        ATb2 = ATb2 + a2 * bx + b2 * by;
+    }
+    
+    double detAInv = 1.0 / (ATA00 * ATA11 * ATA22 - ATA00 * ATA12 * ATA21 - ATA02 * ATA11 * ATA20);
+
+    /* construct S */
+    S00 =  ATA11 * ATA22 - ATA12 * ATA21;
+    S01 =  ATA02 * ATA21;
+    S02 = -ATA02 * ATA11;
+    S10 =  ATA12 * ATA20;
+    S11 =  ATA00 * ATA22 - ATA02 * ATA20;
+    S12 = -ATA00 * ATA12;
+    S20 = -ATA11 * ATA20;
+    S21 = -ATA00 * ATA21;
+    S22 =  ATA00 * ATA11;
+    
+    /* solve t */
+    MATD_EL(_t, 0, 0) = detAInv * (S00 * ATb0 + S01 * ATb1 + S02 * ATb2);
+    MATD_EL(_t, 1, 0) = detAInv * (S10 * ATb0 + S11 * ATb1 + S12 * ATb2);
+    MATD_EL(_t, 2, 0) = detAInv * (S20 * ATb0 + S21 * ATb1 + S22 * ATb2);
+}
+
 void ippeComputeRotations(double j00, double j01, double j10, double j11, double p, double q, matd_t *_R1, matd_t *_R2)
 {
     /**

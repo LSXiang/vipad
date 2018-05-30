@@ -78,10 +78,10 @@ void solvePoseOfCentredSquare(float squareLength, matd_t imagePoints, matd_t *ca
 
 /** 
  * @brief Computes the translation solution for a given rotation solution
- * @param _objectPoints Array of corresponding model points, 1xN/Nx1 3-channel where N is the number of points
- * @param _undistortedPoints Array of corresponding image points (undistorted), 1xN/Nx1 2-channel where N is the number of points
- * @param _R1 Rotation solution from IPPE, 3x3 1-channel float
- * @param _t  Translation solution, 3x1 1-channel float
+ * @param _objectPoints Array of corresponding model points, Nx3 where N is the number of points
+ * @param _undistortedPoints Array of corresponding image points (undistorted), Nx2 where N is the number of points
+ * @param _R1 Rotation solution from IPPE, 3x3 double
+ * @param _t  Translation solution, 3x1 double
  */
 void ippeComputeTranslation(matd_t *_objectPoints, matd_t *_imgPoints, matd_t *_R, matd_t *_t);
 
