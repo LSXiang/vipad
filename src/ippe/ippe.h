@@ -76,14 +76,21 @@ void solvePoseOfCentredSquare(float squareLength, matd_t imagePoints, matd_t *ca
                                 matd_t *distCoeffs, matd_t *_rvec1, matd_t *_tvec1,
                                 float& reprojErr1, matd_t *_rvec2, matd_t *_tvec2, float& reprojErr2);
 
-/** 
- * @brief Computes the translation solution for a given rotation solution
- * @param _objectPoints Array of corresponding model points, Nx3 where N is the number of points
- * @param _undistortedPoints Array of corresponding image points (undistorted), Nx2 where N is the number of points
- * @param _R1 Rotation solution from IPPE, 3x3 double
- * @param _t  Translation solution, 3x1 double
+/**
+ * @brief Closed-form solution for the homography mapping with four corner correspondences of a square (it maps
+ * source points to target points). The source points are the four corners of a zero-centred squared defined by:
+ *  point 0: [-squareLength / 2.0,  squareLength / 2.0]
+ *  point 1: [ squareLength / 2.0,  squareLength / 2.0]
+ *  point 2: [ squareLength / 2.0, -squareLength / 2.0]
+ *  point 3: [-squareLength / 2.0, -squareLength / 2.0]
+ *
+ * @param _targetPts Array of four corresponding target points, 4x2. Note that the points should be
+ *                   ordered to correspond with points 0, 1, 2 and 3.
+ * @param halfLength the square's half length (i.e. squareLength/2.0)
+ * @param _R1 Rotation solution from IPPE, 3x3 1-channel float
+ * @param _H  Homograhy mapping the source points to the target points, 3x3 single channel
  */
-void ippeComputeTranslation(matd_t *_objectPoints, matd_t *_imgPoints, matd_t *_R, matd_t *_t);
+void homographyFromSquarePoints(matd_t *_targetPts, float halfLength, matd_t *_H);
 
 /** 
  * @brief Computes the two rotation solutions from the Jacobian of a homography matrix H. For highest accuracy the
@@ -100,21 +107,27 @@ void ippeComputeTranslation(matd_t *_objectPoints, matd_t *_imgPoints, matd_t *_
  */
 void ippeComputeRotations(double j00, double j01, double j10, double j11, double p, double q, matd_t *_R1, matd_t *_R2);
 
-/**
- * @brief Closed-form solution for the homography mapping with four corner correspondences of a square (it maps
- * source points to target points). The source points are the four corners of a zero-centred squared defined by:
- *  point 0: [-squareLength / 2.0,  squareLength / 2.0]
- *  point 1: [ squareLength / 2.0,  squareLength / 2.0]
- *  point 2: [ squareLength / 2.0, -squareLength / 2.0]
- *  point 3: [-squareLength / 2.0, -squareLength / 2.0]
- *
- * @param _targetPts Array of four corresponding target points, 4x2. Note that the points should be
- *                   ordered to correspond with points 0, 1, 2 and 3.
- * @param halfLength the square's half length (i.e. squareLength/2.0)
- * @param _R1 Rotation solution from IPPE, 3x3 1-channel float
- * @param _H  Homograhy mapping the source points to the target points, 3x3 single channel
+/** 
+ * @brief Computes the translation solution for a given rotation solution
+ * @param _objectPoints Array of corresponding model points, Nx3 where N is the number of points
+ * @param _undistortedPoints Array of corresponding image points (undistorted), Nx2 where N is the number of points
+ * @param _R1 Rotation solution from IPPE, 3x3 double
+ * @param _t  Translation solution, 3x1 double
  */
-void homographyFromSquarePoints(matd_t *_targetPts, float halfLength, matd_t *_H);
+void ippeComputeTranslation(matd_t *_objectPoints, matd_t *_imgPoints, matd_t *_R, matd_t *_t);
+
+/**
+ * @brief Determines the reprojection error of a pose solution
+ * @param _R1 Rotation solution from IPPE, 3x3 double
+ * @param _t  Translation solution from IPPE  3x1 double
+ * @param _objectPoints Array of corresponding model points, Nx3 where N is the number of points
+ * @param _undistortedPoints Array of corresponding image points (undistorted and normalized), Nx2 where
+ *                           N is the number of points
+ * @return The pose solution with the lowest reprojection error.
+ */
+float ippeEvalReprojError(matd_t *_R, matd_t *_t, matd_t *_objectPoints, matd_t *_undistortedPoints);
+
+
 
 /**
  * @brief Finds the rotation _Ra that rotates a vector _a to the z axis (0, 0, 1)
