@@ -127,7 +127,10 @@ void ippeComputeTranslation(matd_t *_objectPoints, matd_t *_imgPoints, matd_t *_
  */
 float ippeEvalReprojError(matd_t *_R, matd_t *_t, matd_t *_objectPoints, matd_t *_undistortedPoints);
 
-
+/**
+ * @brief 
+ */
+void undistortPoints(matd_t *_imagePoints, matd_t *_undistortedPoints, matd_t *_cameraMatrix, matd_t *_distCoeffs);
 
 /**
  * @brief Finds the rotation _Ra that rotates a vector _a to the z axis (0, 0, 1)
