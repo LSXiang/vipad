@@ -128,7 +128,12 @@ void ippeComputeTranslation(matd_t *_objectPoints, matd_t *_imgPoints, matd_t *_
 float ippeEvalReprojError(matd_t *_R, matd_t *_t, matd_t *_objectPoints, matd_t *_undistortedPoints);
 
 /**
- * @brief 
+ * @brief Computes the ideal point coordinates from the observed point coordinates
+ * @param _imagePoints Observed point coordinates, Nx2 where N is the number of points
+ * @param _undistortedPoints Output ideal point coordinates after undistortion and reverse perspective transformation.
+ * @param _cameraMatrix Camera matrix \f$\vecthreethree{f_x}{0}{c_x}{0}{f_y}{c_y}{0}{0}{1}\f$
+ * @param _distCoeffs Input vector of distortion coefficients \f$(k_1, k_2, p_1, p_2, k_3)\f$ of 5 elements. 
+ *                    If the vector is NULL/empty, the zero distortion coefficients are assumed.
  */
 void undistortPoints(matd_t *_imagePoints, matd_t *_undistortedPoints, matd_t *_cameraMatrix, matd_t *_distCoeffs);
 

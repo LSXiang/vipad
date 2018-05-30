@@ -40,6 +40,7 @@ namespace ippe {
 
 void homographyFromSquarePoints(matd_t *_targetPts, float halfLength, matd_t *_H)
 {
+    assert(_targetPts != nullptr);
     assert(_targetPts->nrows == 4 && _targetPts->ncols == 2);
     
     if (_H != nullptr) matd_destroy(_H);
@@ -206,7 +207,6 @@ void ippeComputeRotations(double j00, double j01, double j10, double j11, double
                           + (rtilde00 * rtilde11 - rtilde01 * rtilde10) * rv22;
 }
 
-
 void ippeComputeTranslation(matd_t *_objectPoints, matd_t *_imgPoints, matd_t *_R, matd_t *_t)
 {
     /**
@@ -214,6 +214,9 @@ void ippeComputeTranslation(matd_t *_objectPoints, matd_t *_imgPoints, matd_t *_
      * This is then inverted with the associated normal equations to give t = inv(transpose(A)*A)*transpose(A)*b
      * For efficiency we only store the coefficients of (transpose(A)*A) and (transpose(A)*b)
      */
+    assert(_objectPoints != nullptr);
+    assert(_imgPoints != nullptr);
+    assert(_R != nullptr);
     assert(_R->nrows == 3 && _R->ncols == 3);
     assert(_objectPoints->ncols == 3);
     assert(_imgPoints->ncols == 2);
@@ -294,17 +297,10 @@ void ippeComputeTranslation(matd_t *_objectPoints, matd_t *_imgPoints, matd_t *_
     MATD_EL(_t, 2, 0) = detAInv * (S20 * ATb0 + S21 * ATb1 + S22 * ATb2);
 }
 
-/**
- * @brief Determines the reprojection error of a pose solution
- * @param _R1 Rotation solution from IPPE, 3x3 double
- * @param _t  Translation solution from IPPE  3x1 double
- * @param _objectPoints Array of corresponding model points, Nx3 where N is the number of points
- * @param _undistortedPoints Array of corresponding image points (undistorted and normalized), Nx2 where
- *                           N is the number of points
- * @return The pose solution with the lowest reprojection error.
- */
 float ippeEvalReprojError(matd_t *_R, matd_t *_t, matd_t *_objectPoints, matd_t *_undistortedPoints)
 {
+    assert(_R != nullptr);
+    assert(_t != nullptr);
     assert(_R->nrows == 3 && _R->ncols == 3);
     assert(_t->nrows == 3 && _t->ncols == 1);
     assert(_objectPoints->ncols == 3 && _undistortedPoints->ncols == 2);
@@ -337,6 +333,10 @@ float ippeEvalReprojError(matd_t *_R, matd_t *_t, matd_t *_objectPoints, matd_t 
     return reprojError;
 }
 
+void undistortPoints(matd_t *_imagePoints, matd_t *_undistortedPoints, matd_t *_cameraMatrix, matd_t *_distCoeffs)
+{
+    
+}
 
 } /* namespace ippe */
 
