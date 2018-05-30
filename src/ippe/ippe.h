@@ -76,6 +76,30 @@ void solvePoseOfCentredSquare(float squareLength, matd_t imagePoints, matd_t *ca
                                 matd_t *distCoeffs, matd_t *_rvec1, matd_t *_tvec1,
                                 float& reprojErr1, matd_t *_rvec2, matd_t *_tvec2, float& reprojErr2);
 
+/** 
+ * @brief Computes the translation solution for a given rotation solution
+ * @param _objectPoints Array of corresponding model points, 1xN/Nx1 3-channel where N is the number of points
+ * @param _undistortedPoints Array of corresponding image points (undistorted), 1xN/Nx1 2-channel where N is the number of points
+ * @param _R1 Rotation solution from IPPE, 3x3 1-channel float
+ * @param _t  Translation solution, 3x1 1-channel float
+ */
+void ippeComputeTranslation(matd_t *_objectPoints, matd_t *_imgPoints, matd_t *_R, matd_t *_t);
+
+/** 
+ * @brief Computes the two rotation solutions from the Jacobian of a homography matrix H. For highest accuracy the
+ *        Jacobian should be computed at the centroid of the point correspondences (see the IPPE paper for the 
+ *        explaination of this). For a point (ux,uy) on the model plane, suppose the homography H maps (ux,uy) to a point (p,q)
+ *        in the image (in normalised pixel coordinates). The Jacobian matrix [J00, J01; J10,J11] is the Jacobian
+ *        of the mapping evaluated at (ux,uy).
+ * @param j00 Jacobian coefficent
+ * @param j01 Jacobian coefficent
+ * @param j10 Jacobian coefficent
+ * @param j11 Jacobian coefficent
+ * @param p the x coordinate of point (ux,uy) mapped into the image (undistorted and normalised position)
+ * @param q the y coordinate of point (ux,uy) mapped into the image (undistorted and normalised position)
+ */
+void ippeComputeRotations(double j00, double j01, double j10, double j11, double p, double q, matd_t *_R1, matd_t *_R2);
+
 /**
  * @brief Closed-form solution for the homography mapping with four corner correspondences of a square (it maps
  * source points to target points). The source points are the four corners of a zero-centred squared defined by:
@@ -91,6 +115,13 @@ void solvePoseOfCentredSquare(float squareLength, matd_t imagePoints, matd_t *ca
  * @param _H  Homograhy mapping the source points to the target points, 3x3 single channel
  */
 void homographyFromSquarePoints(matd_t *_targetPts, float halfLength, matd_t *_H);
+
+/**
+ * @brief Finds the rotation _Ra that rotates a vector _a to the z axis (0, 0, 1)
+ * @param _a  vector: 3x1 matd_t (double)
+ * @param _Ra Rotation: 3x3 matd_t (double)
+ */
+// void rotateVec2ZAxis(matd_t *_a, matd_t *_Ra);
 
 } /* namespace ippe */
 

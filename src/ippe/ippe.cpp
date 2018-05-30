@@ -29,18 +29,140 @@
  * either expressed or implied, of Akatsuki(jacob.lsx).
  */
 
+#include <stdlib.h>
+#include <assert.h>
+#include <math.h>
+
 #include "ippe.h"
 
 namespace ippe {
 
 
+void ippeComputeRotations(double j00, double j01, double j10, double j11, double p, double q, matd_t *_R1, matd_t *_R2)
+{
+    /**
+     * Note that it is very hard to understand what is going on here from the code, so if you want to have a clear explanation
+     * then please refer to the IPPE paper (Algorithm 1 and its description). Or, you can read IPPE matlab code that is certainly 
+     * easier to read.
+     */
+    if (_R1 != nullptr) matd_destroy(_R1);
+    _R1 = matd_create(3, 3);
+    
+    if (_R2 != nullptr) matd_destroy(_R2);
+    _R2 = matd_create(3, 3);
+    
+    double a00, a01, a10, a11, ata00, ata01, ata11, b00, b01, b10, b11, binv00, binv01, binv10, binv11;
+    double rtilde00, rtilde01, rtilde10, rtilde11;
+    double rtilde00_2, rtilde01_2, rtilde10_2, rtilde11_2;
+    double b0, b1, gamma, dtinv;
+    double sp;
+    
+    /* Finds the rotation Rv that rotates a vector (p, q, 1) to the z axis (0, 0, 1) */
+    double s, t, krs0, krs1, krs0_2, krs1_2, costh, sinth;
+    
+    s = sqrt(p * p + q * q + 1);
+    t = sqrt(p * p + q * q);
+    costh = 1 / s;
+    sinth = sqrt(1 - 1 / (s * s));
+
+    krs0 = p / t;
+    krs1 = q / t;
+    krs0_2 = krs0 * krs0;
+    krs1_2 = krs1 * krs1;
+    
+    double rv00, rv01, rv02;
+    double rv10, rv11, rv12;
+    double rv20, rv21, rv22;
+    
+    rv00 = (costh - 1) * krs0_2 + 1;
+    rv01 = krs0 * krs1 * (costh - 1);
+    rv02 = krs0 * sinth;
+    
+    rv10 = krs0 * krs1 * (costh - 1);
+    rv11 = (costh - 1) * krs1_2 + 1;
+    rv12 = krs1 * sinth;
+    
+    rv20 = -krs0 * sinth;
+    rv21 = -krs1 * sinth;
+    rv22 = (costh - 1) * (krs0_2 + krs1_2) + 1;
+    
+    /* setup the 2x2 SVD decomposition */
+    b00 = rv00 - p * rv20;
+    b01 = rv01 - p * rv21;
+    b10 = rv10 - q * rv20;
+    b11 = rv11 - q * rv21;
+
+    dtinv = 1.0 / ((b00 * b11 - b01 * b10));
+
+    binv00 = dtinv * b11;
+    binv01 = -dtinv * b01;
+    binv10 = -dtinv * b10;
+    binv11 = dtinv * b00;
+
+    a00 = binv00 * j00 + binv01 * j10;
+    a01 = binv00 * j01 + binv01 * j11;
+    a10 = binv10 * j00 + binv11 * j10;
+    a11 = binv10 * j01 + binv11 * j11;
+
+    /* compute the largest singular value of A */
+    ata00 = a00 * a00 + a01 * a01;
+    ata01 = a00 * a10 + a01 * a11;
+    ata11 = a10 * a10 + a11 * a11;
+
+    gamma = sqrt(0.5 * (ata00 + ata11 + sqrt((ata00 - ata11) * (ata00 - ata11) + 4.0 * ata01 * ata01)));
+
+    /* reconstruct the full rotation matrices */
+    rtilde00 = a00 / gamma;
+    rtilde01 = a01 / gamma;
+    rtilde10 = a10 / gamma;
+    rtilde11 = a11 / gamma;
+
+    rtilde00_2 = rtilde00 * rtilde00;
+    rtilde01_2 = rtilde01 * rtilde01;
+    rtilde10_2 = rtilde10 * rtilde10;
+    rtilde11_2 = rtilde11 * rtilde11;
+
+    b0 = sqrt(-rtilde00_2 - rtilde10_2 + 1);
+    b1 = sqrt(-rtilde01_2 - rtilde11_2 + 1);
+    sp = (-rtilde00 * rtilde01 - rtilde10 * rtilde11);
+
+    if (sp < 0) {
+        b1 = -b1;
+    }
+    
+    /* save results */
+    MATD_EL(_R1, 0, 0) = (rtilde00)*rv00 + (rtilde10)*rv01 + (b0)*rv02;
+    MATD_EL(_R1, 0, 1) = (rtilde01)*rv00 + (rtilde11)*rv01 + (b1)*rv02;
+    MATD_EL(_R1, 0, 2) = (b1 * rtilde10 - b0 * rtilde11) * rv00 + (b0 * rtilde01 - b1 * rtilde00) * rv01
+                          + (rtilde00 * rtilde11 - rtilde01 * rtilde10) * rv02;
+    MATD_EL(_R1, 1, 0) = (rtilde00)*rv10 + (rtilde10)*rv11 + (b0)*rv12;
+    MATD_EL(_R1, 1, 1) = (rtilde01)*rv10 + (rtilde11)*rv11 + (b1)*rv12;
+    MATD_EL(_R1, 1, 2) = (b1 * rtilde10 - b0 * rtilde11) * rv10 + (b0 * rtilde01 - b1 * rtilde00) * rv11
+                          + (rtilde00 * rtilde11 - rtilde01 * rtilde10) * rv12;
+    MATD_EL(_R1, 2, 0) = (rtilde00)*rv20 + (rtilde10)*rv21 + (b0)*rv22;
+    MATD_EL(_R1, 2, 1) = (rtilde01)*rv20 + (rtilde11)*rv21 + (b1)*rv22;
+    MATD_EL(_R1, 2, 2) = (b1 * rtilde10 - b0 * rtilde11) * rv20 + (b0 * rtilde01 - b1 * rtilde00) * rv21
+                          + (rtilde00 * rtilde11 - rtilde01 * rtilde10) * rv22;
+
+    MATD_EL(_R2, 0, 0) = (rtilde00)*rv00 + (rtilde10)*rv01 + (-b0) * rv02;
+    MATD_EL(_R2, 0, 1) = (rtilde01)*rv00 + (rtilde11)*rv01 + (-b1) * rv02;
+    MATD_EL(_R2, 0, 2) = (b0 * rtilde11 - b1 * rtilde10) * rv00 + (b1 * rtilde00 - b0 * rtilde01) * rv01
+                          + (rtilde00 * rtilde11 - rtilde01 * rtilde10) * rv02;
+    MATD_EL(_R2, 1, 0) = (rtilde00)*rv10 + (rtilde10)*rv11 + (-b0) * rv12;
+    MATD_EL(_R2, 1, 1) = (rtilde01)*rv10 + (rtilde11)*rv11 + (-b1) * rv12;
+    MATD_EL(_R2, 1, 2) = (b0 * rtilde11 - b1 * rtilde10) * rv10 + (b1 * rtilde00 - b0 * rtilde01) * rv11
+                          + (rtilde00 * rtilde11 - rtilde01 * rtilde10) * rv12;
+    MATD_EL(_R2, 2, 0) = (rtilde00)*rv20 + (rtilde10)*rv21 + (-b0) * rv22;
+    MATD_EL(_R2, 2, 1) = (rtilde01)*rv20 + (rtilde11)*rv21 + (-b1) * rv22;
+    MATD_EL(_R2, 2, 2) = (b0 * rtilde11 - b1 * rtilde10) * rv20 + (b1 * rtilde00 - b0 * rtilde01) * rv21
+                          + (rtilde00 * rtilde11 - rtilde01 * rtilde10) * rv22;
+}
 
 void homographyFromSquarePoints(matd_t *_targetPts, float halfLength, matd_t *_H)
 {
     assert(_targetPts->nrows == 4 && _targetPts->ncols == 2);
     
-    if (_H != nullptr)
-        matd_destroy(_H);
+    if (_H != nullptr) matd_destroy(_H);
     _H = matd_create(3, 3);
     
     double p1x = -MATD_EL(_targetPts, 0, 0);
@@ -83,6 +205,7 @@ void homographyFromSquarePoints(matd_t *_targetPts, float halfLength, matd_t *_H
     
     MATD_EL(_H, 2, 2) = 1.0;
 }
+
 
 } /* namespace ippe */
 
