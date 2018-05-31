@@ -37,6 +37,92 @@
 
 namespace ippe {
 
+void ippeSolvePoseOfCentredSquare(float squareLength, matd_t *imagePoints, matd_t *cameraMatrix, matd_t *distCoeffs,
+                                  matd_t *_R1, matd_t *_tvec1, float& reprojErr1, 
+                                  matd_t *_R2, matd_t *_tvec2, float& reprojErr2)
+{
+    assert(imagePoints != nullptr);
+    assert(cameraMatrix != nullptr);
+    assert(imagePoints->nrows == 4 && imagePoints->ncols == 2);
+    assert(cameraMatrix->nrows == 3 && cameraMatrix->ncols == 3);
+    assert(distCoeffs == nullptr || distCoeffs->nrows * distCoeffs->ncols == 5);
+    
+    matd_t *undistortedPoints = nullptr;    // undistorted version of imagePoints
+    matd_t *modelPoints = matd_create(4, 3);
+    
+    if (_R1 != nullptr) matd_destroy(_R1);
+    if (_tvec1 != nullptr) matd_destroy(_tvec1);
+    if (_R2 != nullptr) matd_destroy(_R2);
+    if (_tvec2 != nullptr) matd_destroy(_tvec2);
+    
+    /* set coordinate system in the middle of the centred square, with Z pointing out */
+    float halfLength = squareLength / 2.0f;
+    MATD_EL(modelPoints, 0, 0) = -halfLength;   MATD_EL(modelPoints, 0, 1) =  halfLength;   MATD_EL(modelPoints, 0, 2) = 0;
+    MATD_EL(modelPoints, 1, 0) =  halfLength;   MATD_EL(modelPoints, 1, 1) =  halfLength;   MATD_EL(modelPoints, 1, 2) = 0;
+    MATD_EL(modelPoints, 2, 0) =  halfLength;   MATD_EL(modelPoints, 2, 1) = -halfLength;   MATD_EL(modelPoints, 2, 2) = 0;
+    MATD_EL(modelPoints, 3, 0) = -halfLength;   MATD_EL(modelPoints, 3, 1) = -halfLength;   MATD_EL(modelPoints, 3, 2) = 0;
+    
+    /* (Ra, ta), (Rb, tb) are the two pose solutions from IPPE */
+    matd_t *Ra = nullptr, *ta = nullptr;
+    matd_t *Rb = nullptr, *tb = nullptr;
+    matd_t *H = nullptr;  // homography matrix pointer
+    
+    /* undistort the image points (i.e. put them in normalized pixel coordinates) */
+    undistortPoints(imagePoints, undistortedPoints, cameraMatrix, distCoeffs);
+    
+    /* compute the homography mapping the model's four corners to undistortedPoints */
+    homographyFromSquarePoints(undistortedPoints, halfLength, H);
+    
+    /* compute the Jacobian J of the homography at (0,0) */
+    double j00, j01, j10, j11, v0, v1;
+    
+    j00 = MATD_EL(H, 0, 0) - MATD_EL(H, 2, 0) * MATD_EL(H, 0, 2);
+    j01 = MATD_EL(H, 0, 1) - MATD_EL(H, 2, 1) * MATD_EL(H, 0, 2);
+    j10 = MATD_EL(H, 1, 0) - MATD_EL(H, 2, 0) * MATD_EL(H, 1, 2);
+    j11 = MATD_EL(H, 1, 0) - MATD_EL(H, 2, 1) * MATD_EL(H, 1, 2);
+    
+    /* compute the transformation of (0,0) into the image */
+    v0 = MATD_EL(H, 0, 2);
+    v1 = MATD_EL(H, 1, 2);
+    
+    /* compute the two rotation solutions */
+    ippeComputeRotations(j00, j01, j10, j11, v0, v1, Ra, Rb);
+    
+    /* for each rotation solution, compute the corresponding translation solution */
+    ippeComputeTranslation(modelPoints, undistortedPoints, Ra, ta);
+    ippeComputeTranslation(modelPoints, undistortedPoints, Rb, tb);
+    
+    /* for each transformation (R, t) solution, compute the reprojection error */
+    float reprojErra = ippeEvalReprojError(Ra, ta, modelPoints, undistortedPoints);
+    float reprojErrb = ippeEvalReprojError(Rb, tb, modelPoints, undistortedPoints);
+    
+    if (reprojErra < reprojErrb) {
+        _R1 = matd_copy(Ra);
+        _tvec1 = matd_copy(ta);
+        
+        _R2 = matd_copy(Rb);
+        _tvec2 = matd_copy(tb);
+        
+        reprojErr1 = reprojErra;
+        reprojErr2 = reprojErrb;
+    } else {
+        _R1 = matd_copy(Rb);
+        _tvec1 = matd_copy(tb);
+        
+        _R2 = matd_copy(Ra);
+        _tvec2 = matd_copy(ta);
+        
+        reprojErr1 = reprojErrb;
+        reprojErr2 = reprojErra;
+    }
+    
+    matd_destroy(undistortedPoints);
+    matd_destroy(H);
+    matd_destroy(Ra);
+    matd_destroy(Rb);
+    matd_destroy(ta);
+    matd_destroy(tb);
+}
 
 void homographyFromSquarePoints(matd_t *_targetPts, float halfLength, matd_t *_H)
 {
@@ -361,6 +447,8 @@ void undistortPoints(matd_t *_imagePoints, matd_t *_undistortedPoints, matd_t *_
     double cy = MATD_EL(_cameraMatrix, 1, 0);
     
     int numPts = _imagePoints->nrows;
+    
+    if (_undistortedPoints != nullptr) matd_destroy(_undistortedPoints);
     _undistortedPoints = matd_create(numPts, 2);
     
     for (int i = 0; i < numPts; i ++) {
