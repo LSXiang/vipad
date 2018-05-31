@@ -16,5 +16,6 @@ target_link_libraries(locationEstimation
     AprilTag_lib
     common_lib
     pnp_lib
+    ippe_lib
     pthread
     )

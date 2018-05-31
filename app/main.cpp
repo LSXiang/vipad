@@ -15,6 +15,7 @@
 #include "common/homography.h"
 
 #include "ippe.h"
+#include "ippe/ippe.h"
 
 using namespace std;
 using namespace cv;
@@ -211,7 +212,7 @@ void getRelativeTransform(double tag_size, double fx, double fy, double px, doub
                             0, fy, py,
                             0,  0,  1);
     cv::Vec4f distParam(0,0,0,0);
-//     cv::Vec4f distParam( -5.0968287369808518e-02, -8.0252844113471298e+01, -1.5334326534795978e-03, -1.8098396142340031e-02);
+//     cv::Vec4f distParam( -5.0968287369808518e-02, -8.0252844113471298e+01, -1.5334326534795978e-03, -1.8098396142340031e-02,  -1.0045140113684745e+00);
     cv::solvePnP(objPts, imgPts, cameraMatrix, distParam, rvec, tvec);
     cv::Matx33d r;
     cv::Rodrigues(rvec, r);
@@ -255,7 +256,13 @@ void getRelativeTransform(double tag_size, double fx, double fy, double px, doub
     
 }
 
-
+void getRelativeTransform2(double tag_size, double fx, double fy, double px, double py, double p[4][2])
+{
+    matd_t *imagePoints;
+    matd_t *cameraMatrix, *distParam;
+    
+    imagePoints = matd_create_data(4, 2, p[0]);
+}
 
 
 
