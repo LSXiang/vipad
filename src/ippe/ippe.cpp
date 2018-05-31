@@ -37,6 +37,19 @@
 
 namespace ippe {
 
+void solvePoseOfMarker(float markerLength, matd_t *imagePoints, matd_t *cameraMatrix, matd_t *distCoeffs,
+                       matd_t *R, matd_t *t, float &reprojErr)
+{
+    matd_t *_R = nullptr, *_t = nullptr;
+    float _reprojErr;
+    
+    ippeSolvePoseOfCentredSquare(markerLength, imagePoints, cameraMatrix, distCoeffs,
+                                 R, t, reprojErr, _R, _t, _reprojErr);
+    
+    matd_destroy(_R);
+    matd_destroy(_t);
+}
+
 void ippeSolvePoseOfCentredSquare(float squareLength, matd_t *imagePoints, matd_t *cameraMatrix, matd_t *distCoeffs,
                                   matd_t *_R1, matd_t *_tvec1, float& reprojErr1, 
                                   matd_t *_R2, matd_t *_tvec2, float& reprojErr2)

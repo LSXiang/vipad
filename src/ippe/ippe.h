@@ -37,6 +37,31 @@
 namespace ippe {
 
 /** 
+ * @brief Finds the possible poses of a square marker planar object given its four corner correspondences in an image
+ *        using IPPE.
+ *
+ * @param markerLength the marker's length (which is also it's width) in object coordinate units (e.g. millimeters,
+ *                     meters, etc.)
+ * The square marker is defined in object coordinates on the plane z=0 and centred at the origin. Therefore its four points in
+ * object coordinates are given by:
+ *   point 0: [-markerLength / 2.0,  markerLength / 2.0, 0]
+ *   point 1: [ markerLength / 2.0,  markerLength / 2.0, 0]
+ *   point 2: [ markerLength / 2.0, -markerLength / 2.0, 0]
+ *   point 3: [-markerLength / 2.0, -markerLength / 2.0, 0]
+ * @param imagePoints Array of four corresponding image points, 4x2. Note that the points should be
+ *                    ordered to correspond with points 0, 1, 2 and 3.
+ * @param cameraMatrix Input camera matrix \f$A = \vecthreethree{fx}{0}{cx}{0}{fy}{cy}{0}{0}{1}\f$ .
+ * @param distCoeffs Input vector of distortion coefficients (k_1, k_2, p_1, p_2, k_3) of 5 elements. If the vector is
+ *                   NULL/empty, the zero distortion coefficients are assumed.
+ * @param R Output rotation matrix for pose. That, together with t , brings points from the model coordinate system 
+ *          to the camera coordinate system.
+ * @param t Output translation vector for pose.
+ * @param reprojErr Output reprojection error of pose
+ */
+void solvePoseOfMarker(float markerLength, matd_t *imagePoints, matd_t *cameraMatrix, matd_t *distCoeffs,
+                       matd_t *R, matd_t *t, float &reprojErr);
+
+/** 
  * @brief Finds the two possible poses of a square planar object given its four corner correspondences in an image
  * using IPPE. These poses are sorted so that the first one is the one with the lowest reprojection error. The second
  * pose is needed if the problem is ambiguous. The problem is ambiguous when the projection of the model is close to
@@ -58,31 +83,31 @@ namespace ippe {
  *   point 1: [ squareLength / 2.0,  squareLength / 2.0, 0]
  *   point 2: [ squareLength / 2.0, -squareLength / 2.0, 0]
  *   point 3: [-squareLength / 2.0, -squareLength / 2.0, 0]
- * @param imagePoints Array of four corresponding image points, 1x4/4x1 2-channel. Note that the points should be
+ * @param imagePoints Array of four corresponding image points, 4x2. Note that the points should be
  *                    ordered to correspond with points 0, 1, 2 and 3.
  * @param cameraMatrix Input camera matrix \f$A = \vecthreethree{fx}{0}{cx}{0}{fy}{cy}{0}{0}{1}\f$ .
- * @param distCoeffs Input vector of distortion coefficients (k_1, k_2, p_1, p_2) of 4 elements. If the vector is
+ * @param distCoeffs Input vector of distortion coefficients (k_1, k_2, p_1, p_2, k_3) of 5 elements. If the vector is
  *                   NULL/empty, the zero distortion coefficients are assumed.
- * @param _rvec1 Output rotation vector (see Rodrigues ) for first pose. That, together with tvec , brings points from
- *               the model coordinate system to the camera coordinate system.
+ * @param _R1 Output rotation matrix for first pose. That, together with tvec , brings points from
+ *            the model coordinate system to the camera coordinate system.
  * @param _tvec1 Output translation vector for first pose.
  * @param reprojErr1 Output reprojection error of first pose
- * @param _rvec2 Output rotation vector (see Rodrigues ) for second pose. That, together with tvec , brings points from
- *               the model coordinate system to the camera coordinate system.
+ * @param _R2 Output rotation matrix for second pose. That, together with tvec , brings points from
+ *            the model coordinate system to the camera coordinate system.
  * @param _tvec2 Output translation vector for second pose.
  * @param reprojErr1 Output reprojection error of second pose
  */
-void solvePoseOfCentredSquare(float squareLength, matd_t imagePoints, matd_t *cameraMatrix,
-                                matd_t *distCoeffs, matd_t *_rvec1, matd_t *_tvec1,
-                                float& reprojErr1, matd_t *_rvec2, matd_t *_tvec2, float& reprojErr2);
+void ippeSolvePoseOfCentredSquare(float squareLength, matd_t *imagePoints, matd_t *cameraMatrix, matd_t *distCoeffs,
+                                  matd_t *_R1, matd_t *_tvec1, float& reprojErr1, 
+                                  matd_t *_R2, matd_t *_tvec2, float& reprojErr2);
 
 /**
  * @brief Closed-form solution for the homography mapping with four corner correspondences of a square (it maps
  * source points to target points). The source points are the four corners of a zero-centred squared defined by:
- *  point 0: [-squareLength / 2.0,  squareLength / 2.0]
- *  point 1: [ squareLength / 2.0,  squareLength / 2.0]
- *  point 2: [ squareLength / 2.0, -squareLength / 2.0]
- *  point 3: [-squareLength / 2.0, -squareLength / 2.0]
+ *   point 0: [-squareLength / 2.0,  squareLength / 2.0]
+ *   point 1: [ squareLength / 2.0,  squareLength / 2.0]
+ *   point 2: [ squareLength / 2.0, -squareLength / 2.0]
+ *   point 3: [-squareLength / 2.0, -squareLength / 2.0]
  *
  * @param _targetPts Array of four corresponding target points, 4x2. Note that the points should be
  *                   ordered to correspond with points 0, 1, 2 and 3.
