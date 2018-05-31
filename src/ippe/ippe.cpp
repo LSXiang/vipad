@@ -37,8 +37,8 @@
 
 namespace ippe {
 
-void solvePoseOfMarker(float markerLength, matd_t *imagePoints, matd_t *cameraMatrix, matd_t *distCoeffs,
-                       matd_t *R, matd_t *t, float &reprojErr)
+void solvePoseOfMarker(float markerLength, matd_t* &imagePoints, matd_t* &cameraMatrix, matd_t* &distCoeffs,
+                       matd_t* &R, matd_t* &t, float &reprojErr)
 {
     matd_t *_R = nullptr, *_t = nullptr;
     float _reprojErr;
@@ -50,9 +50,9 @@ void solvePoseOfMarker(float markerLength, matd_t *imagePoints, matd_t *cameraMa
     matd_destroy(_t);
 }
 
-void ippeSolvePoseOfCentredSquare(float squareLength, matd_t *imagePoints, matd_t *cameraMatrix, matd_t *distCoeffs,
-                                  matd_t *_R1, matd_t *_tvec1, float& reprojErr1, 
-                                  matd_t *_R2, matd_t *_tvec2, float& reprojErr2)
+void ippeSolvePoseOfCentredSquare(float squareLength, matd_t* &imagePoints, matd_t* &cameraMatrix, matd_t* &distCoeffs,
+                                  matd_t* &_R1, matd_t* &_tvec1, float& reprojErr1, 
+                                  matd_t* &_R2, matd_t* &_tvec2, float& reprojErr2)
 {
     assert(imagePoints != nullptr);
     assert(cameraMatrix != nullptr);
@@ -137,7 +137,7 @@ void ippeSolvePoseOfCentredSquare(float squareLength, matd_t *imagePoints, matd_
     matd_destroy(tb);
 }
 
-void homographyFromSquarePoints(matd_t *_targetPts, float halfLength, matd_t *_H)
+void homographyFromSquarePoints(matd_t* &_targetPts, float halfLength, matd_t* &_H)
 {
     assert(_targetPts != nullptr);
     assert(_targetPts->nrows == 4 && _targetPts->ncols == 2);
@@ -186,7 +186,7 @@ void homographyFromSquarePoints(matd_t *_targetPts, float halfLength, matd_t *_H
     MATD_EL(_H, 2, 2) = 1.0;
 }
 
-void ippeComputeRotations(double j00, double j01, double j10, double j11, double p, double q, matd_t *_R1, matd_t *_R2)
+void ippeComputeRotations(double j00, double j01, double j10, double j11, double p, double q, matd_t* &_R1, matd_t* &_R2)
 {
     /**
      * Note that it is very hard to understand what is going on here from the code, so if you want to have a clear explanation
@@ -306,7 +306,7 @@ void ippeComputeRotations(double j00, double j01, double j10, double j11, double
                           + (rtilde00 * rtilde11 - rtilde01 * rtilde10) * rv22;
 }
 
-void ippeComputeTranslation(matd_t *_objectPoints, matd_t *_imgPoints, matd_t *_R, matd_t *_t)
+void ippeComputeTranslation(matd_t* &_objectPoints, matd_t* &_imgPoints, matd_t* &_R, matd_t* &_t)
 {
     /**
      * This is solved by building the linear system At = b, where t corresponds to the (ALL_DICTS) translation.
@@ -396,7 +396,7 @@ void ippeComputeTranslation(matd_t *_objectPoints, matd_t *_imgPoints, matd_t *_
     MATD_EL(_t, 2, 0) = detAInv * (S20 * ATb0 + S21 * ATb1 + S22 * ATb2);
 }
 
-float ippeEvalReprojError(matd_t *_R, matd_t *_t, matd_t *_objectPoints, matd_t *_undistortedPoints)
+float ippeEvalReprojError(matd_t* &_R, matd_t* &_t, matd_t* &_objectPoints, matd_t* &_undistortedPoints)
 {
     assert(_R != nullptr);
     assert(_t != nullptr);
@@ -432,7 +432,7 @@ float ippeEvalReprojError(matd_t *_R, matd_t *_t, matd_t *_objectPoints, matd_t 
     return reprojError;
 }
 
-void undistortPoints(matd_t *_imagePoints, matd_t *_undistortedPoints, matd_t *_cameraMatrix, matd_t *_distCoeffs, int _maxITER)
+void undistortPoints(matd_t* &_imagePoints, matd_t* &_undistortedPoints, matd_t* &_cameraMatrix, matd_t* &_distCoeffs, int _maxITER)
 {
     assert(_imagePoints != nullptr);
     assert(_cameraMatrix != nullptr);

@@ -58,8 +58,8 @@ namespace ippe {
  * @param t Output translation vector for pose.
  * @param reprojErr Output reprojection error of pose
  */
-void solvePoseOfMarker(float markerLength, matd_t *imagePoints, matd_t *cameraMatrix, matd_t *distCoeffs,
-                       matd_t *R, matd_t *t, float &reprojErr);
+void solvePoseOfMarker(float markerLength, matd_t* &imagePoints, matd_t* &cameraMatrix, matd_t* &distCoeffs,
+                       matd_t* &R, matd_t* &t, float &reprojErr);
 
 /** 
  * @brief Finds the two possible poses of a square planar object given its four corner correspondences in an image
@@ -97,9 +97,9 @@ void solvePoseOfMarker(float markerLength, matd_t *imagePoints, matd_t *cameraMa
  * @param _tvec2 Output translation vector for second pose.
  * @param reprojErr1 Output reprojection error of second pose
  */
-void ippeSolvePoseOfCentredSquare(float squareLength, matd_t *imagePoints, matd_t *cameraMatrix, matd_t *distCoeffs,
-                                  matd_t *_R1, matd_t *_tvec1, float& reprojErr1, 
-                                  matd_t *_R2, matd_t *_tvec2, float& reprojErr2);
+void ippeSolvePoseOfCentredSquare(float squareLength, matd_t* &imagePoints, matd_t* &cameraMatrix, matd_t* &distCoeffs,
+                                  matd_t* &_R1, matd_t* &_tvec1, float& reprojErr1, 
+                                  matd_t* &_R2, matd_t* &_tvec2, float& reprojErr2);
 
 /**
  * @brief Closed-form solution for the homography mapping with four corner correspondences of a square (it maps
@@ -115,7 +115,7 @@ void ippeSolvePoseOfCentredSquare(float squareLength, matd_t *imagePoints, matd_
  * @param _R1 Rotation solution from IPPE, 3x3 1-channel float
  * @param _H  Homograhy mapping the source points to the target points, 3x3 single channel
  */
-void homographyFromSquarePoints(matd_t *_targetPts, float halfLength, matd_t *_H);
+void homographyFromSquarePoints(matd_t* &_targetPts, float halfLength, matd_t* &_H);
 
 /** 
  * @brief Computes the two rotation solutions from the Jacobian of a homography matrix H. For highest accuracy the
@@ -130,7 +130,7 @@ void homographyFromSquarePoints(matd_t *_targetPts, float halfLength, matd_t *_H
  * @param p the x coordinate of point (ux,uy) mapped into the image (undistorted and normalised position)
  * @param q the y coordinate of point (ux,uy) mapped into the image (undistorted and normalised position)
  */
-void ippeComputeRotations(double j00, double j01, double j10, double j11, double p, double q, matd_t *_R1, matd_t *_R2);
+void ippeComputeRotations(double j00, double j01, double j10, double j11, double p, double q, matd_t* &_R1, matd_t* &_R2);
 
 /** 
  * @brief Computes the translation solution for a given rotation solution
@@ -139,7 +139,7 @@ void ippeComputeRotations(double j00, double j01, double j10, double j11, double
  * @param _R1 Rotation solution from IPPE, 3x3 double
  * @param _t  Translation solution, 3x1 double
  */
-void ippeComputeTranslation(matd_t *_objectPoints, matd_t *_imgPoints, matd_t *_R, matd_t *_t);
+void ippeComputeTranslation(matd_t* &_objectPoints, matd_t* &_imgPoints, matd_t* &_R, matd_t* &_t);
 
 /**
  * @brief Determines the reprojection error of a pose solution
@@ -150,7 +150,7 @@ void ippeComputeTranslation(matd_t *_objectPoints, matd_t *_imgPoints, matd_t *_
  *                           N is the number of points
  * @return The pose solution with the lowest reprojection error.
  */
-float ippeEvalReprojError(matd_t *_R, matd_t *_t, matd_t *_objectPoints, matd_t *_undistortedPoints);
+float ippeEvalReprojError(matd_t* &_R, matd_t* &_t, matd_t* &_objectPoints, matd_t* &_undistortedPoints);
 
 /**
  * @brief Computes the ideal point coordinates from the observed point coordinates
@@ -161,7 +161,7 @@ float ippeEvalReprojError(matd_t *_R, matd_t *_t, matd_t *_objectPoints, matd_t 
  *                    If the vector is NULL/empty, the zero distortion coefficients are assumed
  * @param _maxITER the maximum number of iterations or elements to compute
  */
-void undistortPoints(matd_t *_imagePoints, matd_t *_undistortedPoints, matd_t *_cameraMatrix, matd_t *_distCoeffs, int _maxITER = 5);
+void undistortPoints(matd_t* &_imagePoints, matd_t* &_undistortedPoints, matd_t* &_cameraMatrix, matd_t* &_distCoeffs, int _maxITER = 5);
 
 /**
  * @brief Finds the rotation _Ra that rotates a vector _a to the z axis (0, 0, 1)
