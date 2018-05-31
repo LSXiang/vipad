@@ -133,9 +133,10 @@ float ippeEvalReprojError(matd_t *_R, matd_t *_t, matd_t *_objectPoints, matd_t 
  * @param _undistortedPoints Output ideal point coordinates after undistortion and reverse perspective transformation.
  * @param _cameraMatrix Camera matrix \f$\vecthreethree{f_x}{0}{c_x}{0}{f_y}{c_y}{0}{0}{1}\f$
  * @param _distCoeffs Input vector of distortion coefficients \f$(k_1, k_2, p_1, p_2, k_3)\f$ of 5 elements. 
- *                    If the vector is NULL/empty, the zero distortion coefficients are assumed.
+ *                    If the vector is NULL/empty, the zero distortion coefficients are assumed
+ * @param _maxITER the maximum number of iterations or elements to compute
  */
-void undistortPoints(matd_t *_imagePoints, matd_t *_undistortedPoints, matd_t *_cameraMatrix, matd_t *_distCoeffs);
+void undistortPoints(matd_t *_imagePoints, matd_t *_undistortedPoints, matd_t *_cameraMatrix, matd_t *_distCoeffs, int _maxITER = 5);
 
 /**
  * @brief Finds the rotation _Ra that rotates a vector _a to the z axis (0, 0, 1)

@@ -333,9 +333,64 @@ float ippeEvalReprojError(matd_t *_R, matd_t *_t, matd_t *_objectPoints, matd_t 
     return reprojError;
 }
 
-void undistortPoints(matd_t *_imagePoints, matd_t *_undistortedPoints, matd_t *_cameraMatrix, matd_t *_distCoeffs)
+void undistortPoints(matd_t *_imagePoints, matd_t *_undistortedPoints, matd_t *_cameraMatrix, matd_t *_distCoeffs, int _maxITER)
 {
+    assert(_imagePoints != nullptr);
+    assert(_cameraMatrix != nullptr);
+    assert(_imagePoints->ncols == 2);
+    assert(_cameraMatrix->nrows == 3 && _cameraMatrix->ncols == 3);
+    assert(_distCoeffs == nullptr || _distCoeffs->nrows * _distCoeffs->ncols == 5);
     
+    double k1, k2, p1, p2, k3;
+    
+    if (_distCoeffs == nullptr) {
+        k1 = k2 = p1 = p2 = k3 = 0;
+    } else {
+        k1 = _distCoeffs->data[0];
+        k2 = _distCoeffs->data[1];
+        p1 = _distCoeffs->data[2];
+        p2 = _distCoeffs->data[3];
+        k3 = _distCoeffs->data[4];
+    }
+    
+    double fx = MATD_EL(_cameraMatrix, 0, 0);
+    double fy = MATD_EL(_cameraMatrix, 1, 1);
+    double ifx = 1./fx;
+    double ify = 1./fy;
+    double cx = MATD_EL(_cameraMatrix, 0, 2);
+    double cy = MATD_EL(_cameraMatrix, 1, 0);
+    
+    int numPts = _imagePoints->nrows;
+    _undistortedPoints = matd_create(numPts, 2);
+    
+    for (int i = 0; i < numPts; i ++) {
+        double x, y, x0 = 0, y0 = 0;
+        
+        x = MATD_EL(_imagePoints, i, 0);
+        y = MATD_EL(_imagePoints, i, 1);
+        
+        x = (x - cx) * ifx;
+        y = (y - cy) * ify;
+        
+        if (_distCoeffs != nullptr) {
+            // vector (x, y, 1)
+            x0 = x;
+            y0 = y;
+            
+            /* compensate distortion iteratively */
+            for (int j = 0; j < _maxITER; j ++) {
+                double r2 = x*x + y*y;
+                double icdist = 1. / (1 + ((k3*r2 + k2)*r2 + k1)*r2);
+                double deltaX = 2*p1*x*y + p2*(r2 + 2*x*x);
+                double deltaY = p1*(r2 + 2*y*y) + 2*p2*x*y;
+                x = (x0 - deltaX)*icdist;
+                y = (y0 - deltaY)*icdist;
+            }
+        }
+        
+        MATD_EL(_undistortedPoints, i, 0) = x;
+        MATD_EL(_undistortedPoints, i, 1) = y;
+    }
 }
 
 } /* namespace ippe */
