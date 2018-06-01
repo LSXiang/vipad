@@ -14,7 +14,6 @@
 
 #include "common/homography.h"
 
-#include "ippe.h"
 #include "ippe/ippe.h"
 
 using namespace std;
@@ -132,37 +131,37 @@ int main(int argc, char *argv[])
             apriltag_detection_t *det;
             zarray_get(detections, 0, &det);
             
-            matd_t *pose = homography_to_pose(det->H, 2.4908279215754123e+03, 2.4935314568583112e+03, 3.4745731382095448e+02, 2.4094331871742105e+02);
-            
-//             cout << "x y z : " << MATD_EL(pose, 0, 3) * 0.05 <<  ",\t" << MATD_EL(pose, 1, 3) * 0.05 << ",\t" << MATD_EL(pose, 2, 3) * 0.05 << endl;
-//             cout << "R : " << MATD_EL(pose, 0, 0) <<  ",\t" << MATD_EL(pose, 0, 1) << ",\t" << MATD_EL(pose, 0, 2) << "\r\n"
-//                            << MATD_EL(pose, 1, 0) <<  ",\t" << MATD_EL(pose, 1, 1) << ",\t" << MATD_EL(pose, 1, 2) << "\r\n"
-//                            << MATD_EL(pose, 2, 0) <<  ",\t" << MATD_EL(pose, 2, 1) << ",\t" << MATD_EL(pose, 2, 2) << endl;
-//             cout << "yaw :" << std::atan2<float>(MATD_EL(pose, 1, 0), MATD_EL(pose, 0, 0)) * 57.3 << endl;
-            
-            matd_t *R = matd_select(pose, 0, 2, 0, 2);
-//             cout << "R **** : " << MATD_EL(R, 0, 0) <<  ",\t" << MATD_EL(R, 0, 1) << ",\t" << MATD_EL(R, 0, 2) << "\r\n"
-//                         << MATD_EL(R, 1, 0) <<  ",\t" << MATD_EL(R, 1, 1) << ",\t" << MATD_EL(R, 1, 2) << "\r\n"
-//                         << MATD_EL(R, 2, 0) <<  ",\t" << MATD_EL(R, 2, 1) << ",\t" << MATD_EL(R, 2, 2) << endl;
-            
-            matd_t *t_ = matd_select(pose, 0, 2, 3, 3);
-//             cout << "x y z $$$$$$$ : " << MATD_EL(t_, 0, 0) * 0.05 <<  ",\t" << MATD_EL(t_, 1, 0) * 0.05 << ",\t" << MATD_EL(t_, 2, 0) * 0.05 << endl;
-            matd_t *R_t = matd_transpose(R);
-//             cout << "R ^^^^ : " << MATD_EL(R_t, 0, 0) <<  ",\t" << MATD_EL(R_t, 0, 1) << ",\t" << MATD_EL(R_t, 0, 2) << "\r\n"
-//                                 << MATD_EL(R_t, 1, 0) <<  ",\t" << MATD_EL(R_t, 1, 1) << ",\t" << MATD_EL(R_t, 1, 2) << "\r\n"
-//                                 << MATD_EL(R_t, 2, 0) <<  ",\t" << MATD_EL(R_t, 2, 1) << ",\t" << MATD_EL(R_t, 2, 2) << endl;
-            matd_t *t = matd_multiply(R_t, t_);
-//             cout << "size :::::::::::: " << t->nrows << ", " << t->ncols << endl;;
-            
-            cout << "x y z **** : " << MATD_EL(t, 0, 0) * 0.05 <<  ",\t" << MATD_EL(t, 1, 0) * 0.05 << ",\t" << MATD_EL(t, 2, 0) * 0.05 << endl;
-            
-//             cout << "goodness : " << det->goodness << endl;
-            
-            matd_destroy(R);
-            matd_destroy(t_);
-            matd_destroy(t);
-            matd_destroy(R_t);
-            matd_destroy(pose);
+//             matd_t *pose = homography_to_pose(det->H, 2.4908279215754123e+03, 2.4935314568583112e+03, 3.4745731382095448e+02, 2.4094331871742105e+02);
+//             
+// //             cout << "x y z : " << MATD_EL(pose, 0, 3) * 0.05 <<  ",\t" << MATD_EL(pose, 1, 3) * 0.05 << ",\t" << MATD_EL(pose, 2, 3) * 0.05 << endl;
+// //             cout << "R : " << MATD_EL(pose, 0, 0) <<  ",\t" << MATD_EL(pose, 0, 1) << ",\t" << MATD_EL(pose, 0, 2) << "\r\n"
+// //                            << MATD_EL(pose, 1, 0) <<  ",\t" << MATD_EL(pose, 1, 1) << ",\t" << MATD_EL(pose, 1, 2) << "\r\n"
+// //                            << MATD_EL(pose, 2, 0) <<  ",\t" << MATD_EL(pose, 2, 1) << ",\t" << MATD_EL(pose, 2, 2) << endl;
+// //             cout << "yaw :" << std::atan2<float>(MATD_EL(pose, 1, 0), MATD_EL(pose, 0, 0)) * 57.3 << endl;
+//             
+//             matd_t *R = matd_select(pose, 0, 2, 0, 2);
+// //             cout << "R **** : " << MATD_EL(R, 0, 0) <<  ",\t" << MATD_EL(R, 0, 1) << ",\t" << MATD_EL(R, 0, 2) << "\r\n"
+// //                         << MATD_EL(R, 1, 0) <<  ",\t" << MATD_EL(R, 1, 1) << ",\t" << MATD_EL(R, 1, 2) << "\r\n"
+// //                         << MATD_EL(R, 2, 0) <<  ",\t" << MATD_EL(R, 2, 1) << ",\t" << MATD_EL(R, 2, 2) << endl;
+//             
+//             matd_t *t_ = matd_select(pose, 0, 2, 3, 3);
+// //             cout << "x y z $$$$$$$ : " << MATD_EL(t_, 0, 0) * 0.05 <<  ",\t" << MATD_EL(t_, 1, 0) * 0.05 << ",\t" << MATD_EL(t_, 2, 0) * 0.05 << endl;
+//             matd_t *R_t = matd_transpose(R);
+// //             cout << "R ^^^^ : " << MATD_EL(R_t, 0, 0) <<  ",\t" << MATD_EL(R_t, 0, 1) << ",\t" << MATD_EL(R_t, 0, 2) << "\r\n"
+// //                                 << MATD_EL(R_t, 1, 0) <<  ",\t" << MATD_EL(R_t, 1, 1) << ",\t" << MATD_EL(R_t, 1, 2) << "\r\n"
+// //                                 << MATD_EL(R_t, 2, 0) <<  ",\t" << MATD_EL(R_t, 2, 1) << ",\t" << MATD_EL(R_t, 2, 2) << endl;
+//             matd_t *t = matd_multiply(R_t, t_);
+// //             cout << "size :::::::::::: " << t->nrows << ", " << t->ncols << endl;;
+//             
+//             cout << "x y z **** : " << MATD_EL(t, 0, 0) * 0.05 <<  ",\t" << MATD_EL(t, 1, 0) * 0.05 << ",\t" << MATD_EL(t, 2, 0) * 0.05 << endl;
+//             
+// //             cout << "goodness : " << det->goodness << endl;
+//             
+//             matd_destroy(R);
+//             matd_destroy(t_);
+//             matd_destroy(t);
+//             matd_destroy(R_t);
+//             matd_destroy(pose);
             
             getRelativeTransform(0.1, 2.4908279215754123e+03, 2.4935314568583112e+03, 3.4745731382095448e+02, 2.4094331871742105e+02, det->p);
             getRelativeTransform2(0.1, 2.4908279215754123e+03, 2.4935314568583112e+03, 3.4745731382095448e+02, 2.4094331871742105e+02, det->p);
@@ -251,12 +250,12 @@ void getRelativeTransform(double tag_size, double fx, double fy, double px, doub
     
     
     /*******************************************************************************************************/
-    aruco::solvePnP(objPts, imgPts, cameraMatrix, distParam, rvec, tvec);
-    cv::Rodrigues(rvec, r);
-//     cout << r << endl;
-    cv::Vec3d tt(tvec.at<double>(0), tvec.at<double>(1), tvec.at<double>(2));
-    ttt = - r.t() * tt;
-    cout << "x y z &&&& : " << ttt[0] <<  ",\t" << ttt[1] << ",\t" << ttt[2] << endl;
+//     aruco::solvePnP(objPts, imgPts, cameraMatrix, distParam, rvec, tvec);
+//     cv::Rodrigues(rvec, r);
+// //     cout << r << endl;
+//     cv::Vec3d tt(tvec.at<double>(0), tvec.at<double>(1), tvec.at<double>(2));
+//     ttt = - r.t() * tt;
+//     cout << "x y z &&&& : " << ttt[0] <<  ",\t" << ttt[1] << ",\t" << ttt[2] << endl;
     
 }
 
@@ -266,11 +265,6 @@ void getRelativeTransform2(double tag_size, double fx, double fy, double cx, dou
     matd_t *cameraMatrix, *distParam;
     
     imagePoints = matd_create_data(4, 2, p[0]);
-    
-//     cout << MATD_EL(imagePoints, 0, 0) << ", "  << MATD_EL(imagePoints, 0, 1) << "\r\n"
-//          << MATD_EL(imagePoints, 1, 0) << ", "  << MATD_EL(imagePoints, 1, 1) << "\r\n"
-//          << MATD_EL(imagePoints, 2, 0) << ", "  << MATD_EL(imagePoints, 2, 1) << "\r\n"
-//          << MATD_EL(imagePoints, 3, 0) << ", "  << MATD_EL(imagePoints, 3, 1) << endl;
     
     cameraMatrix = matd_identity(3);
     MATD_EL(cameraMatrix, 0, 0) = fx;

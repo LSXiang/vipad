@@ -29,15 +29,11 @@
  * either expressed or implied, of Akatsuki(jacob.lsx).
  */
 
-#include <iostream>
-
 #include <stdlib.h>
 #include <assert.h>
 #include <math.h>
 
 #include "ippe.h"
-
-using namespace std;
 
 namespace ippe {
 
@@ -86,16 +82,9 @@ void ippeSolvePoseOfCentredSquare(float squareLength, matd_t* &imagePoints, matd
     
     /* undistort the image points (i.e. put them in normalized pixel coordinates) */
     undistortPoints(imagePoints, undistortedPoints, cameraMatrix, distCoeffs);
-//     cout << MATD_EL(undistortedPoints, 0, 0) << ", "  << MATD_EL(undistortedPoints, 0, 1) << "\r\n"
-//          << MATD_EL(undistortedPoints, 1, 0) << ", "  << MATD_EL(undistortedPoints, 1, 1) << "\r\n"
-//          << MATD_EL(undistortedPoints, 2, 0) << ", "  << MATD_EL(undistortedPoints, 2, 1) << "\r\n"
-//          << MATD_EL(undistortedPoints, 3, 0) << ", "  << MATD_EL(undistortedPoints, 3, 1) << endl;
     
     /* compute the homography mapping the model's four corners to undistortedPoints */
     homographyFromSquarePoints(undistortedPoints, halfLength, H);
-//     cout << MATD_EL(H, 0, 0) <<  ", " << MATD_EL(H, 0, 1) << ", " << MATD_EL(H, 0, 2) << "\r\n"
-//          << MATD_EL(H, 1, 0) <<  ", " << MATD_EL(H, 1, 1) << ", " << MATD_EL(H, 1, 2) << "\r\n"
-//          << MATD_EL(H, 2, 0) <<  ", " << MATD_EL(H, 2, 1) << ", " << MATD_EL(H, 2, 2) << endl;
     
     /* compute the Jacobian J of the homography at (0,0) */
     double j00, j01, j10, j11, v0, v1;
@@ -111,19 +100,10 @@ void ippeSolvePoseOfCentredSquare(float squareLength, matd_t* &imagePoints, matd
     
     /* compute the two rotation solutions */
     ippeComputeRotations(j00, j01, j10, j11, v0, v1, Ra, Rb);
-//     cout << MATD_EL(Ra, 0, 0) <<  ", " << MATD_EL(Ra, 0, 1) << ", " << MATD_EL(Ra, 0, 2) << "\r\n"
-//          << MATD_EL(Ra, 1, 0) <<  ", " << MATD_EL(Ra, 1, 1) << ", " << MATD_EL(Ra, 1, 2) << "\r\n"
-//          << MATD_EL(Ra, 2, 0) <<  ", " << MATD_EL(Ra, 2, 1) << ", " << MATD_EL(Ra, 2, 2) << endl;
-//     cout << MATD_EL(Rb, 0, 0) <<  ", " << MATD_EL(Rb, 0, 1) << ", " << MATD_EL(Rb, 0, 2) << "\r\n"
-//          << MATD_EL(Rb, 1, 0) <<  ", " << MATD_EL(Rb, 1, 1) << ", " << MATD_EL(Rb, 1, 2) << "\r\n"
-//          << MATD_EL(Rb, 2, 0) <<  ", " << MATD_EL(Rb, 2, 1) << ", " << MATD_EL(Rb, 2, 2) << endl;
     
     /* for each rotation solution, compute the corresponding translation solution */
     ippeComputeTranslation(modelPoints, undistortedPoints, Ra, ta);
     ippeComputeTranslation(modelPoints, undistortedPoints, Rb, tb);
-    
-//     cout << ta->data[0] << ta->data[1] << ta->data[2] << endl;
-//     cout << tb->data[0] << tb->data[1] << tb->data[2] << endl;
     
     /* for each transformation (R, t) solution, compute the reprojection error */
     float reprojErra = ippeEvalReprojError(Ra, ta, modelPoints, undistortedPoints);

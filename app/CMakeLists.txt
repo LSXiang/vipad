@@ -15,7 +15,6 @@ target_link_libraries(locationEstimation
     ${OpenCV_LIBS}
     AprilTag_lib
     common_lib
-    pnp_lib
     ippe_lib
     pthread
     )
