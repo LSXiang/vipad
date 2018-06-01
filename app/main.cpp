@@ -166,6 +166,8 @@ int main(int argc, char *argv[])
             
             getRelativeTransform(0.1, 2.4908279215754123e+03, 2.4935314568583112e+03, 3.4745731382095448e+02, 2.4094331871742105e+02, det->p);
             getRelativeTransform2(0.1, 2.4908279215754123e+03, 2.4935314568583112e+03, 3.4745731382095448e+02, 2.4094331871742105e+02, det->p);
+            
+            apriltag_detection_destroy(det);
         }
         
         zarray_destroy(detections);
@@ -213,9 +215,9 @@ void getRelativeTransform(double tag_size, double fx, double fy, double px, doub
                             fx, 0, px,
                             0, fy, py,
                             0,  0,  1);
-    cv::Vec4d distParam(0,0,0,0);
-//     double dist[] = {-5.0968287369808518e-02, -8.0252844113471298e+01, -1.5334326534795978e-03, -1.8098396142340031e-02,  -1.0045140113684745e+00};
-//     cv::Mat distParam = cv::Mat(1, 5, CV_64FC1, dist);
+//     cv::Vec4d distParam(0,0,0,0);
+    double dist[] = {-5.0968287369808518e-02, -8.0252844113471298e+01, -1.5334326534795978e-03, -1.8098396142340031e-02,  -1.0045140113684745e+00};
+    cv::Mat distParam = cv::Mat(1, 5, CV_64FC1, dist);
     cv::solvePnP(objPts, imgPts, cameraMatrix, distParam, rvec, tvec);
     cv::Matx33d r;
     cv::Rodrigues(rvec, r);
@@ -265,6 +267,11 @@ void getRelativeTransform2(double tag_size, double fx, double fy, double cx, dou
     
     imagePoints = matd_create_data(4, 2, p[0]);
     
+//     cout << MATD_EL(imagePoints, 0, 0) << ", "  << MATD_EL(imagePoints, 0, 1) << "\r\n"
+//          << MATD_EL(imagePoints, 1, 0) << ", "  << MATD_EL(imagePoints, 1, 1) << "\r\n"
+//          << MATD_EL(imagePoints, 2, 0) << ", "  << MATD_EL(imagePoints, 2, 1) << "\r\n"
+//          << MATD_EL(imagePoints, 3, 0) << ", "  << MATD_EL(imagePoints, 3, 1) << endl;
+    
     cameraMatrix = matd_identity(3);
     MATD_EL(cameraMatrix, 0, 0) = fx;
     MATD_EL(cameraMatrix, 0, 2) = cx;
@@ -281,7 +288,7 @@ void getRelativeTransform2(double tag_size, double fx, double fy, double cx, dou
     matd_t *R_t = matd_transpose(R);
     matd_t *tinv = matd_multiply(R_t, t);
         
-    cout << "x y z ^^^^ : " << MATD_EL(tinv, 0, 0) <<  ",\t" << MATD_EL(tinv, 1, 0) << ",\t" << MATD_EL(tinv, 2, 0) << endl;
+    cout << "x y z ^^^^ : " << -MATD_EL(tinv, 0, 0) <<  ",\t" << -MATD_EL(tinv, 1, 0) << ",\t" << -MATD_EL(tinv, 2, 0) << endl;
     
     matd_destroy(imagePoints);
     matd_destroy(cameraMatrix);

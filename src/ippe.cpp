@@ -26,6 +26,8 @@ authors and should not be interpreted as representing official policies, either 
 or implied, of Rafael Muñoz Salinas.
 */
 
+#include <iostream>
+
 #include "ippe.h"
 #include <opencv2/calib3d/calib3d.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
@@ -163,9 +165,12 @@ void solvePoseOfCentredSquare(float squareLength, InputArray imagePoints, InputA
 
     // undistort the image points (i.e. put them in normalized pixel coordinates).
     undistortPoints(imagePoints, undistortedPoints, cameraMatrix, distCoeffs);
+    
+//     cout << undistortedPoints << endl; // ----------------------------------------------------------------------
 
     // compute the homography mapping the model's four corners to undistortedPoints
     homographyFromSquarePoints(undistortedPoints, squareLength / 2.0f, H);
+//     cout << H << endl; // ----------------------------------------------------------------------
 
     // Compute the Jacobian J of the homography at (0,0):
     double j00, j01, j10, j11, v0, v1;
@@ -181,10 +186,15 @@ void solvePoseOfCentredSquare(float squareLength, InputArray imagePoints, InputA
 
     // compute the two rotation solutions:
     IPPComputeRotations(j00, j01, j10, j11, v0, v1, Ra, Rb);
+//     cout << Ra << endl; // ----------------------------------------------------------------------
+//     cout << Rb << endl; // ----------------------------------------------------------------------
 
     // for each rotation solution, compute the corresponding translation solution:
     IPPComputeTranslation(modelPoints, undistortedPoints, Ra, ta);
     IPPComputeTranslation(modelPoints, undistortedPoints, Rb, tb);
+    
+//     cout << ta << endl;
+//     cout << tb << endl;
 
     float reprojErra = IPPEvalReprojectionError(Ra, ta, modelPoints, undistortedPoints);
     float reprojErrb = IPPEvalReprojectionError(Rb, tb, modelPoints, undistortedPoints);
