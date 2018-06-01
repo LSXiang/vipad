@@ -49,7 +49,7 @@ either expressed or implied, of the Regents of The University of Michigan.
 #include "common/timeprofile.h"
 #include "common/math_util.h"
 #include "common/g2d.h"
-#include "common/floats.h"
+// #include "common/floats.h"
 
 #include "apriltag_math.h"
 
