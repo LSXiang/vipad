@@ -10,7 +10,7 @@
 #include "tag36artoolkit.h"
 #include "tag25h9.h"
 #include "tag25h7.h"
-#include "common/getopt.h"
+// #include "common/getopt.h"
 
 #include "common/homography.h"
 
@@ -24,26 +24,26 @@ void getRelativeTransform2(double tag_size, double fx, double fy, double cx, dou
 
 int main(int argc, char *argv[])
 {
-    getopt_t *getopt = getopt_create();
-
-    getopt_add_bool(getopt, 'h', "help", 0, "Show this help");
-    getopt_add_bool(getopt, 'd', "debug", 0, "Enable debugging output (slow)");
-    getopt_add_bool(getopt, 'q', "quiet", 0, "Reduce output");
-    getopt_add_string(getopt, 'f', "family", "tag36h11", "Tag family to use");
-    getopt_add_int(getopt, '\0', "border", "1", "Set tag family border size");
-    getopt_add_int(getopt, 't', "threads", "4", "Use this many CPU threads");
-    getopt_add_double(getopt, 'x', "decimate", "1.0", "Decimate input image by this factor");
-    getopt_add_double(getopt, 'b', "blur", "0.0", "Apply low-pass blur to input");
-    getopt_add_bool(getopt, '0', "refine-edges", 1, "Spend more time trying to align edges of tags");
-    getopt_add_bool(getopt, '1', "refine-decode", 0, "Spend more time trying to decode tags");
-    getopt_add_bool(getopt, '2', "refine-pose", 0, "Spend more time trying to precisely localize tags");
-
-    if (!getopt_parse(getopt, argc, argv, 1) ||
-            getopt_get_bool(getopt, "help")) {
-        printf("Usage: %s [options]\n", argv[0]);
-        getopt_do_usage(getopt);
-        exit(0);
-    }
+//     getopt_t *getopt = getopt_create();
+// 
+//     getopt_add_bool(getopt, 'h', "help", 0, "Show this help");
+//     getopt_add_bool(getopt, 'd', "debug", 0, "Enable debugging output (slow)");
+//     getopt_add_bool(getopt, 'q', "quiet", 0, "Reduce output");
+//     getopt_add_string(getopt, 'f', "family", "tag36h11", "Tag family to use");
+//     getopt_add_int(getopt, '\0', "border", "1", "Set tag family border size");
+//     getopt_add_int(getopt, 't', "threads", "4", "Use this many CPU threads");
+//     getopt_add_double(getopt, 'x', "decimate", "1.0", "Decimate input image by this factor");
+//     getopt_add_double(getopt, 'b', "blur", "0.0", "Apply low-pass blur to input");
+//     getopt_add_bool(getopt, '0', "refine-edges", 1, "Spend more time trying to align edges of tags");
+//     getopt_add_bool(getopt, '1', "refine-decode", 0, "Spend more time trying to decode tags");
+//     getopt_add_bool(getopt, '2', "refine-pose", 0, "Spend more time trying to precisely localize tags");
+// 
+//     if (!getopt_parse(getopt, argc, argv, 1) ||
+//             getopt_get_bool(getopt, "help")) {
+//         printf("Usage: %s [options]\n", argv[0]);
+//         getopt_do_usage(getopt);
+//         exit(0);
+//     }
 
     // Initialize camera
     VideoCapture cap(0);
@@ -54,32 +54,41 @@ int main(int argc, char *argv[])
 
     // Initialize tag detector with options
     apriltag_family_t *tf = NULL;
-    const char *famname = getopt_get_string(getopt, "family");
-    if (!strcmp(famname, "tag36h11"))
+//     const char *famname = getopt_get_string(getopt, "family");
+//     if (!strcmp(famname, "tag36h11"))
         tf = tag36h11_create();
-    else if (!strcmp(famname, "tag36h10"))
-        tf = tag36h10_create();
-    else if (!strcmp(famname, "tag36artoolkit"))
-        tf = tag36artoolkit_create();
-    else if (!strcmp(famname, "tag25h9"))
-        tf = tag25h9_create();
-    else if (!strcmp(famname, "tag25h7"))
-        tf = tag25h7_create();
-    else {
-        printf("Unrecognized tag family name. Use e.g. \"tag36h11\".\n");
-        exit(-1);
-    }
-    tf->black_border = getopt_get_int(getopt, "border");
+//     else if (!strcmp(famname, "tag36h10"))
+//         tf = tag36h10_create();
+//     else if (!strcmp(famname, "tag36artoolkit"))
+//         tf = tag36artoolkit_create();
+//     else if (!strcmp(famname, "tag25h9"))
+//         tf = tag25h9_create();
+//     else if (!strcmp(famname, "tag25h7"))
+//         tf = tag25h7_create();
+//     else {
+//         printf("Unrecognized tag family name. Use e.g. \"tag36h11\".\n");
+//         exit(-1);
+//     }
+//     tf->black_border = getopt_get_int(getopt, "border");
 
     apriltag_detector_t *td = apriltag_detector_create();
     apriltag_detector_add_family(td, tf);
-    td->quad_decimate = getopt_get_double(getopt, "decimate");
-    td->quad_sigma = getopt_get_double(getopt, "blur");
-    td->nthreads = getopt_get_int(getopt, "threads");
-    td->debug = getopt_get_bool(getopt, "debug");
-    td->refine_edges = getopt_get_bool(getopt, "refine-edges");
-    td->refine_decode = getopt_get_bool(getopt, "refine-decode");
-    td->refine_pose = getopt_get_bool(getopt, "refine-pose");
+//     td->quad_decimate = getopt_get_double(getopt, "decimate");
+//     td->quad_sigma = getopt_get_double(getopt, "blur");
+//     td->nthreads = getopt_get_int(getopt, "threads");
+//     td->debug = getopt_get_bool(getopt, "debug");
+//     td->refine_edges = getopt_get_bool(getopt, "refine-edges");
+//     td->refine_decode = getopt_get_bool(getopt, "refine-decode");
+//     td->refine_pose = getopt_get_bool(getopt, "refine-pose");
+    td->quad_decimate = 1.0f;
+    td->quad_sigma = 0.0f;
+    td->nthreads = 4;
+    td->debug = 0;
+    td->refine_edges = 1;
+    td->refine_decode = 0;
+    td->refine_pose = 0;
+    
+    
 
     Mat frame, gray;
     while (true) {
@@ -177,17 +186,17 @@ int main(int argc, char *argv[])
     }
 
     apriltag_detector_destroy(td);
-    if (!strcmp(famname, "tag36h11"))
+//     if (!strcmp(famname, "tag36h11"))
         tag36h11_destroy(tf);
-    else if (!strcmp(famname, "tag36h10"))
-        tag36h10_destroy(tf);
-    else if (!strcmp(famname, "tag36artoolkit"))
-        tag36artoolkit_destroy(tf);
-    else if (!strcmp(famname, "tag25h9"))
-        tag25h9_destroy(tf);
-    else if (!strcmp(famname, "tag25h7"))
-        tag25h7_destroy(tf);
-    getopt_destroy(getopt);
+//     else if (!strcmp(famname, "tag36h10"))
+//         tag36h10_destroy(tf);
+//     else if (!strcmp(famname, "tag36artoolkit"))
+//         tag36artoolkit_destroy(tf);
+//     else if (!strcmp(famname, "tag25h9"))
+//         tag25h9_destroy(tf);
+//     else if (!strcmp(famname, "tag25h7"))
+//         tag25h7_destroy(tf);
+//     getopt_destroy(getopt);
 
     return 0;
 }
