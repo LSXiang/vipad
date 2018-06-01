@@ -149,6 +149,7 @@ void ippeSolvePoseOfCentredSquare(float squareLength, matd_t* &imagePoints, matd
         reprojErr2 = reprojErra;
     }
     
+    matd_destroy(modelPoints);
     matd_destroy(undistortedPoints);
     matd_destroy(H);
     matd_destroy(Ra);
