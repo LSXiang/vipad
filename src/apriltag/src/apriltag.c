@@ -42,7 +42,7 @@ either expressed or implied, of the Regents of The University of Michigan.
 
 #include "common/image_u8.h"
 #include "common/image_u8x3.h"
-#include "common/zhash.h"
+// #include "common/zhash.h"
 #include "common/zarray.h"
 #include "common/matd.h"
 #include "common/homography.h"
