@@ -204,27 +204,27 @@ void workerpool_run(workerpool_t *wp)
     }
 }
 
-int workerpool_get_nprocs()
-{
-    FILE * f = fopen("/proc/cpuinfo", "r");
-    size_t n = 0;
-    char * buf = NULL;
-
-    int nproc = 0;
-
-    while(getline(&buf, &n, f) != -1)
-    {
-        if(!str_starts_with(buf, "processor"))
-            continue;
-
-       int colon = str_indexof(buf, ":");
-
-       int v = atoi(&buf[colon+1]);
-       if (v > nproc)
-	 nproc = v;
-    }
-
-    free(buf);
-
-    return nproc;
-}
+// int workerpool_get_nprocs()
+// {
+//     FILE * f = fopen("/proc/cpuinfo", "r");
+//     size_t n = 0;
+//     char * buf = NULL;
+// 
+//     int nproc = 0;
+// 
+//     while(getline(&buf, &n, f) != -1)
+//     {
+//         if(!str_starts_with(buf, "processor"))
+//             continue;
+// 
+//        int colon = str_indexof(buf, ":");
+// 
+//        int v = atoi(&buf[colon+1]);
+//        if (v > nproc)
+// 	 nproc = v;
+//     }
+// 
+//     free(buf);
+// 
+//     return nproc;
+// }
