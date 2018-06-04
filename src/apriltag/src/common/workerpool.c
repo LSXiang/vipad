@@ -41,7 +41,7 @@ either expressed or implied, of the Regents of The University of Michigan.
 #include "workerpool.h"
 #include "timeprofile.h"
 #include "math_util.h"
-#include "string_util.h"
+// #include "string_util.h"
 
 struct workerpool {
     int nthreads;
