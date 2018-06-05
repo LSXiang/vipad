@@ -32,6 +32,7 @@
  */
 
 #include <stdint.h>
+#include "apriltag.h"
 #include "tag_family.h"
 
 /**
@@ -3802,5 +3803,54 @@ const uint64_t t36h11[] =
     0x0000000e83be4b73UL
 };
 
+/**
+ * AprilTag class pointers
+ */
+const uint64_t *tags_ptr[] =
+{
+    t16h5,
+    t25h7,
+    t25h9,
+    t36artoolkit,
+    t36h10,
+    t36h11
+};
 
+/**
+ * AprilTag class pointers
+ */
+const char *tags_name_ptr[] = {
+    "tag16h5",
+    "tag25h7",
+    "tag25h9",
+    "tag36artoolkit",
+    "tag36h10",
+    "tag36h11"
+};
 
+const uint32_t wide[] = {4, 5, 5, 6, 6, 6};
+const uint32_t hamming[] = {5, 7, 9, 7, 10, 11};
+
+/**
+ * tags_create function
+ */
+apriltag_family_t *tags_create(enum tag_family_type type)
+{
+   apriltag_family_t *tf = calloc(1, sizeof(apriltag_family_t));
+   tf->name = (char *)tags_name_ptr[type];
+   tf->black_border = 1;
+   tf->d = wide[type];
+   tf->h = hamming[type];
+   tf->ncodes = 30;
+   tf->codes = (uint64_t *)tags_ptr[type];
+
+   return tf;
+}
+
+/**
+ * tags_destroy function
+ */
+void tags_destroy(apriltag_family_t *tf)
+{
+   free(tf);
+}
