@@ -5,11 +5,15 @@
 #include <opencv2/opencv.hpp>
 
 #include "apriltag.h"
-#include "tag36h11.h"
-#include "tag36h10.h"
-#include "tag36artoolkit.h"
-#include "tag25h9.h"
-#include "tag25h7.h"
+
+// #include "tag36h11.h"
+// #include "tag36h10.h"
+// #include "tag36artoolkit.h"
+// #include "tag25h9.h"
+// #include "tag25h7.h"
+
+#include "tag_family.h"
+
 // #include "common/getopt.h"
 
 #include "common/homography.h"
@@ -56,7 +60,7 @@ int main(int argc, char *argv[])
     apriltag_family_t *tf = NULL;
 //     const char *famname = getopt_get_string(getopt, "family");
 //     if (!strcmp(famname, "tag36h11"))
-        tf = tag36h11_create();
+//         tf = tag36h11_create();
 //     else if (!strcmp(famname, "tag36h10"))
 //         tf = tag36h10_create();
 //     else if (!strcmp(famname, "tag36artoolkit"))
@@ -70,6 +74,8 @@ int main(int argc, char *argv[])
 //         exit(-1);
 //     }
 //     tf->black_border = getopt_get_int(getopt, "border");
+        
+    tf = tags_create(tag36h11);
 
     apriltag_detector_t *td = apriltag_detector_create();
     apriltag_detector_add_family(td, tf);
@@ -186,8 +192,11 @@ int main(int argc, char *argv[])
     }
 
     apriltag_detector_destroy(td);
+    
+    tags_destroy(tf);
+    
 //     if (!strcmp(famname, "tag36h11"))
-        tag36h11_destroy(tf);
+//         tag36h11_destroy(tf);
 //     else if (!strcmp(famname, "tag36h10"))
 //         tag36h10_destroy(tf);
 //     else if (!strcmp(famname, "tag36artoolkit"))
