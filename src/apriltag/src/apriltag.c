@@ -41,7 +41,7 @@ either expressed or implied, of the Regents of The University of Michigan.
 #include <sys/time.h>
 
 #include "common/image_u8.h"
-#include "common/image_u8x3.h"
+// #include "common/image_u8x3.h"
 // #include "common/zhash.h"
 #include "common/zarray.h"
 #include "common/matd.h"
@@ -1392,42 +1392,42 @@ zarray_t *apriltag_detector_detect(apriltag_detector_t *td, image_u8_t *im_orig)
         fclose(f);
     }
 
-    if (td->debug) {
-        image_u8_t *darker = image_u8_copy(im_orig);
-        image_u8_darken(darker);
-        image_u8_darken(darker);
-
-        image_u8x3_t *out = image_u8x3_create(darker->width, darker->height);
-        for (int y = 0; y < im_orig->height; y++) {
-            for (int x = 0; x < im_orig->width; x++) {
-                out->buf[y*out->stride + 3*x + 0] = darker->buf[y*darker->stride + x];
-                out->buf[y*out->stride + 3*x + 1] = darker->buf[y*darker->stride + x];
-                out->buf[y*out->stride + 3*x + 2] = darker->buf[y*darker->stride + x];
-            }
-        }
-
-        for (int i = 0; i < zarray_size(detections); i++) {
-            apriltag_detection_t *det;
-            zarray_get(detections, i, &det);
-
-            float rgb[3];
-            int bias = 100;
-
-            for (int i = 0; i < 3; i++)
-                rgb[i] = bias + (random() % (255-bias));
-
-            for (int j = 0; j < 4; j++) {
-                int k = (j + 1) & 3;
-                image_u8x3_draw_line(out,
-                                     det->p[j][0], det->p[j][1], det->p[k][0], det->p[k][1],
-                                     (uint8_t[]) { rgb[0], rgb[1], rgb[2] },
-                                     1);
-            }
-        }
-
-        image_u8x3_write_pnm(out, "debug_output.pnm");
-        image_u8x3_destroy(out);
-    }
+//     if (td->debug) {
+//         image_u8_t *darker = image_u8_copy(im_orig);
+//         image_u8_darken(darker);
+//         image_u8_darken(darker);
+// 
+//         image_u8x3_t *out = image_u8x3_create(darker->width, darker->height);
+//         for (int y = 0; y < im_orig->height; y++) {
+//             for (int x = 0; x < im_orig->width; x++) {
+//                 out->buf[y*out->stride + 3*x + 0] = darker->buf[y*darker->stride + x];
+//                 out->buf[y*out->stride + 3*x + 1] = darker->buf[y*darker->stride + x];
+//                 out->buf[y*out->stride + 3*x + 2] = darker->buf[y*darker->stride + x];
+//             }
+//         }
+// 
+//         for (int i = 0; i < zarray_size(detections); i++) {
+//             apriltag_detection_t *det;
+//             zarray_get(detections, i, &det);
+// 
+//             float rgb[3];
+//             int bias = 100;
+// 
+//             for (int i = 0; i < 3; i++)
+//                 rgb[i] = bias + (random() % (255-bias));
+// 
+//             for (int j = 0; j < 4; j++) {
+//                 int k = (j + 1) & 3;
+//                 image_u8x3_draw_line(out,
+//                                      det->p[j][0], det->p[j][1], det->p[k][0], det->p[k][1],
+//                                      (uint8_t[]) { rgb[0], rgb[1], rgb[2] },
+//                                      1);
+//             }
+//         }
+// 
+//         image_u8x3_write_pnm(out, "debug_output.pnm");
+//         image_u8x3_destroy(out);
+//     }
 
     // deallocate
     if (td->debug) {
