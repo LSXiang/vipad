@@ -187,19 +187,19 @@ void image_u8_destroy(image_u8_t *im)
 //     return im;
 // }
 
-image_u8_t *image_u8_create_from_f32(image_f32_t *fim)
-{
-    image_u8_t *im = image_u8_create(fim->width, fim->height);
-
-    for (int y = 0; y < fim->height; y++) {
-        for (int x = 0; x < fim->width; x++) {
-            float v = fim->buf[y*fim->stride + x];
-            im->buf[y*im->stride + x] = (int) (255 * v);
-        }
-    }
-
-    return im;
-}
+// image_u8_t *image_u8_create_from_f32(image_f32_t *fim)
+// {
+//     image_u8_t *im = image_u8_create(fim->width, fim->height);
+// 
+//     for (int y = 0; y < fim->height; y++) {
+//         for (int x = 0; x < fim->width; x++) {
+//             float v = fim->buf[y*fim->stride + x];
+//             im->buf[y*im->stride + x] = (int) (255 * v);
+//         }
+//     }
+// 
+//     return im;
+// }
 
 
 int image_u8_write_pnm(const image_u8_t *im, const char *path)

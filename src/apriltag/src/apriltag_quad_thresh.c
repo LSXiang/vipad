@@ -45,7 +45,7 @@ either expressed or implied, of the Regents of The University of Michigan.
 // #include "common/zhash.h"
 #include "common/unionfind.h"
 // #include "common/timeprofile.h"
-#include "common/zmaxheap.h"
+// #include "common/zmaxheap.h"
 // #include "common/postscript_utils.h"
 #include "common/math_util.h"
 
@@ -561,7 +561,7 @@ int quad_segment_maxima(apriltag_detector_t *td, zarray_t *cluster, struct line_
         return 1;
     return 0;
 }
-
+/*
 // returns 0 if the cluster looks bad.
 int quad_segment_agg(apriltag_detector_t *td, zarray_t *cluster, struct line_fit_pt *lfps, int indices[4])
 {
@@ -671,7 +671,7 @@ int quad_segment_agg(apriltag_detector_t *td, zarray_t *cluster, struct line_fit
     free(segs);
 
     return 1;
-}
+}*/
 
 // return 1 if the quad looks okay, 0 if it should be discarded
 int fit_quad(apriltag_detector_t *td, image_u8_t *im, zarray_t *cluster, struct quad *quad)
@@ -902,8 +902,8 @@ int fit_quad(apriltag_detector_t *td, image_u8_t *im, zarray_t *cluster, struct 
         if (!quad_segment_maxima(td, cluster, lfps, indices))
             goto finish;
     } else {
-        if (!quad_segment_agg(td, cluster, lfps, indices))
-            goto finish;
+//         if (!quad_segment_agg(td, cluster, lfps, indices))
+//             goto finish;
     }
 
 //    printf("%d %d %d %d\n", indices[0], indices[1], indices[2], indices[3]);

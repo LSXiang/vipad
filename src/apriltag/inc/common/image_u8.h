@@ -59,11 +59,11 @@ struct image_u8_lut
 image_u8_t *image_u8_create_stride(unsigned int width, unsigned int height, unsigned int stride);
 image_u8_t *image_u8_create(unsigned int width, unsigned int height);
 image_u8_t *image_u8_create_alignment(unsigned int width, unsigned int height, unsigned int alignment);
-image_u8_t *image_u8_create_from_rgb3(int width, int height, uint8_t *rgb, int stride);
-image_u8_t *image_u8_create_from_f32(image_f32_t *fim);
+// image_u8_t *image_u8_create_from_rgb3(int width, int height, uint8_t *rgb, int stride);
+// image_u8_t *image_u8_create_from_f32(image_f32_t *fim);
 
-image_u8_t *image_u8_create_from_pnm(const char *path);
-    image_u8_t *image_u8_create_from_pnm_alignment(const char *path, int alignment);
+// image_u8_t *image_u8_create_from_pnm(const char *path);
+// image_u8_t *image_u8_create_from_pnm_alignment(const char *path, int alignment);
 
 image_u8_t *image_u8_copy(const image_u8_t *in);
 void image_u8_draw_line(image_u8_t *im, float x0, float y0, float x1, float y1, int v, int width);
