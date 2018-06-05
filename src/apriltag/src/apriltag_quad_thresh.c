@@ -1517,8 +1517,8 @@ zarray_t *apriltag_quad_thresh(apriltag_detector_t *td, image_u8_t *im)
     image_u8_t *threshim = threshold(td, im);
     int ts = threshim->stride;
 
-    if (td->debug)
-        image_u8_write_pnm(threshim, "debug_threshold.pnm");
+//     if (td->debug)
+//         image_u8_write_pnm(threshim, "debug_threshold.pnm");
 
     ////////////////////////////////////////////////////////
     // step 2. find connected components.
@@ -1767,43 +1767,43 @@ zarray_t *apriltag_quad_thresh(apriltag_detector_t *td, image_u8_t *im)
 
 //     timeprofile_stamp(td->tp, "fit quads to clusters");
 
-    if (td->debug) {
-        FILE *f = fopen("debug_lines.ps", "w");
-        fprintf(f, "%%!PS\n\n");
-
-        image_u8_t *im2 = image_u8_copy(im);
-        image_u8_darken(im2);
-        image_u8_darken(im2);
-
-        // assume letter, which is 612x792 points.
-        double scale = fmin(612.0/im->width, 792.0/im2->height);
-        fprintf(f, "%.15f %.15f scale\n", scale, scale);
-        fprintf(f, "0 %d translate\n", im2->height);
-        fprintf(f, "1 -1 scale\n");
-
-//         postscript_image(f, im);
-
-        for (int i = 0; i < zarray_size(quads); i++) {
-            struct quad *q;
-            zarray_get_volatile(quads, i, &q);
-
-            float rgb[3];
-            int bias = 100;
-
-            for (int i = 0; i < 3; i++)
-                rgb[i] = bias + (random() % (255-bias));
-
-            fprintf(f, "%f %f %f setrgbcolor\n", rgb[0]/255.0f, rgb[1]/255.0f, rgb[2]/255.0f);
-            fprintf(f, "%.15f %.15f moveto %.15f %.15f lineto %.15f %.15f lineto %.15f %.15f lineto %.15f %.15f lineto stroke\n",
-                    q->p[0][0], q->p[0][1],
-                    q->p[1][0], q->p[1][1],
-                    q->p[2][0], q->p[2][1],
-                    q->p[3][0], q->p[3][1],
-                    q->p[0][0], q->p[0][1]);
-        }
-
-        fclose(f);
-    }
+//     if (td->debug) {
+//         FILE *f = fopen("debug_lines.ps", "w");
+//         fprintf(f, "%%!PS\n\n");
+// 
+//         image_u8_t *im2 = image_u8_copy(im);
+//         image_u8_darken(im2);
+//         image_u8_darken(im2);
+// 
+//         // assume letter, which is 612x792 points.
+//         double scale = fmin(612.0/im->width, 792.0/im2->height);
+//         fprintf(f, "%.15f %.15f scale\n", scale, scale);
+//         fprintf(f, "0 %d translate\n", im2->height);
+//         fprintf(f, "1 -1 scale\n");
+// 
+// //         postscript_image(f, im);
+// 
+//         for (int i = 0; i < zarray_size(quads); i++) {
+//             struct quad *q;
+//             zarray_get_volatile(quads, i, &q);
+// 
+//             float rgb[3];
+//             int bias = 100;
+// 
+//             for (int i = 0; i < 3; i++)
+//                 rgb[i] = bias + (random() % (255-bias));
+// 
+//             fprintf(f, "%f %f %f setrgbcolor\n", rgb[0]/255.0f, rgb[1]/255.0f, rgb[2]/255.0f);
+//             fprintf(f, "%.15f %.15f moveto %.15f %.15f lineto %.15f %.15f lineto %.15f %.15f lineto %.15f %.15f lineto stroke\n",
+//                     q->p[0][0], q->p[0][1],
+//                     q->p[1][0], q->p[1][1],
+//                     q->p[2][0], q->p[2][1],
+//                     q->p[3][0], q->p[3][1],
+//                     q->p[0][0], q->p[0][1]);
+//         }
+// 
+//         fclose(f);
+//     }
 
     //        printf("  %d %d %d %d\n", indices[0], indices[1], indices[2], indices[3]);
 

@@ -90,7 +90,7 @@ int main(int argc, char *argv[])
     td->quad_decimate = 1.0f;
     td->quad_sigma = 0.0f;
     td->nthreads = 4;
-    td->debug = 0;
+//     td->debug = 0;
     td->refine_edges = 1;
     td->refine_decode = 0;
     td->refine_pose = 0;

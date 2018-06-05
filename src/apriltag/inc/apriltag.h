@@ -170,10 +170,10 @@ struct apriltag_detector
     // computed.
     int refine_pose;
 
-    // When non-zero, write a variety of debugging images to the
-    // current working directory at various stages through the
-    // detection process. (Somewhat slow).
-    int debug;
+//     // When non-zero, write a variety of debugging images to the
+//     // current working directory at various stages through the
+//     // detection process. (Somewhat slow).
+//     int debug;
 
     struct apriltag_quad_thresh_params qtp;
 
