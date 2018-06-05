@@ -46,7 +46,7 @@ either expressed or implied, of the Regents of The University of Michigan.
 #include "common/zarray.h"
 #include "common/matd.h"
 #include "common/homography.h"
-#include "common/timeprofile.h"
+// #include "common/timeprofile.h"
 #include "common/math_util.h"
 #include "common/g2d.h"
 // #include "common/floats.h"
@@ -365,7 +365,7 @@ apriltag_detector_t *apriltag_detector_create()
 
     pthread_mutex_init(&td->mutex, NULL);
 
-    td->tp = timeprofile_create();
+//     td->tp = timeprofile_create();
 
     td->refine_edges = 1;
     td->refine_pose = 0;
@@ -381,7 +381,7 @@ apriltag_detector_t *apriltag_detector_create()
 
 void apriltag_detector_destroy(apriltag_detector_t *td)
 {
-    timeprofile_destroy(td->tp);
+//     timeprofile_destroy(td->tp);
     workerpool_destroy(td->wp);
 
     apriltag_detector_clear_families(td);
@@ -1104,8 +1104,8 @@ zarray_t *apriltag_detector_detect(apriltag_detector_t *td, image_u8_t *im_orig)
         td->wp = workerpool_create(td->nthreads);
     }
 
-    timeprofile_clear(td->tp);
-    timeprofile_stamp(td->tp, "init");
+//     timeprofile_clear(td->tp);
+//     timeprofile_stamp(td->tp, "init");
 
     ///////////////////////////////////////////////////////////
     // Step 1. Detect quads according to requested image decimation
@@ -1114,7 +1114,7 @@ zarray_t *apriltag_detector_detect(apriltag_detector_t *td, image_u8_t *im_orig)
     if (td->quad_decimate > 1) {
         quad_im = image_u8_decimate(im_orig, td->quad_decimate);
 
-        timeprofile_stamp(td->tp, "decimate");
+//         timeprofile_stamp(td->tp, "decimate");
     }
 
     if (td->quad_sigma != 0) {
@@ -1162,7 +1162,7 @@ zarray_t *apriltag_detector_detect(apriltag_detector_t *td, image_u8_t *im_orig)
         }
     }
 
-    timeprofile_stamp(td->tp, "blur/sharp");
+//     timeprofile_stamp(td->tp, "blur/sharp");
 
     if (td->debug)
         image_u8_write_pnm(quad_im, "debug_preprocess.pnm");
@@ -1191,7 +1191,7 @@ zarray_t *apriltag_detector_detect(apriltag_detector_t *td, image_u8_t *im_orig)
 
     td->nquads = zarray_size(quads);
 
-    timeprofile_stamp(td->tp, "quads");
+//     timeprofile_stamp(td->tp, "quads");
 
     if (td->debug) {
         image_u8_t *im_quads = image_u8_copy(im_orig);
@@ -1274,7 +1274,7 @@ zarray_t *apriltag_detector_detect(apriltag_detector_t *td, image_u8_t *im_orig)
         image_u8_destroy(im_quads);
     }
 
-    timeprofile_stamp(td->tp, "decode+refinement");
+//     timeprofile_stamp(td->tp, "decode+refinement");
 
     ////////////////////////////////////////////////////////////////
     // Step 3. Reconcile detections--- don't report the same tag more
@@ -1348,7 +1348,7 @@ zarray_t *apriltag_detector_detect(apriltag_detector_t *td, image_u8_t *im_orig)
         zarray_destroy(poly1);
     }
 
-    timeprofile_stamp(td->tp, "reconcile");
+//     timeprofile_stamp(td->tp, "reconcile");
 
     ////////////////////////////////////////////////////////////////
     // Produce final debug output
@@ -1471,7 +1471,7 @@ zarray_t *apriltag_detector_detect(apriltag_detector_t *td, image_u8_t *im_orig)
         fclose(f);
     }
 
-    timeprofile_stamp(td->tp, "debug output");
+//     timeprofile_stamp(td->tp, "debug output");
 
     for (int i = 0; i < zarray_size(quads); i++) {
         struct quad *quad;
@@ -1483,7 +1483,7 @@ zarray_t *apriltag_detector_detect(apriltag_detector_t *td, image_u8_t *im_orig)
     zarray_destroy(quads);
 
     zarray_sort(detections, detection_compare_function);
-    timeprofile_stamp(td->tp, "cleanup");
+//     timeprofile_stamp(td->tp, "cleanup");
 
     return detections;
 }

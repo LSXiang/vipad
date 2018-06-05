@@ -44,7 +44,7 @@ either expressed or implied, of the Regents of The University of Michigan.
 #include "common/zarray.h"
 // #include "common/zhash.h"
 #include "common/unionfind.h"
-#include "common/timeprofile.h"
+// #include "common/timeprofile.h"
 #include "common/zmaxheap.h"
 // #include "common/postscript_utils.h"
 #include "common/math_util.h"
@@ -1383,7 +1383,7 @@ image_u8_t *threshold(apriltag_detector_t *td, image_u8_t *im)
         image_u8_destroy(tmp);
     }
 
-    timeprofile_stamp(td->tp, "threshold");
+//     timeprofile_stamp(td->tp, "threshold");
 
     return threshim;
 }
@@ -1502,7 +1502,7 @@ image_u8_t *threshold_bayer(apriltag_detector_t *td, image_u8_t *im)
         free(im_max[i]);
     }
 
-    timeprofile_stamp(td->tp, "threshold");
+//     timeprofile_stamp(td->tp, "threshold");
 
     return threshim;
 }
@@ -1562,7 +1562,7 @@ zarray_t *apriltag_quad_thresh(apriltag_detector_t *td, image_u8_t *im)
         }
     }
 
-    timeprofile_stamp(td->tp, "unionfind");
+//     timeprofile_stamp(td->tp, "unionfind");
 
     // XXX sizing??
     int nclustermap = 2*w*h - 1;
@@ -1682,7 +1682,7 @@ zarray_t *apriltag_quad_thresh(apriltag_detector_t *td, image_u8_t *im)
         image_u8x3_destroy(d);
     }
 
-    timeprofile_stamp(td->tp, "make clusters");
+//     timeprofile_stamp(td->tp, "make clusters");
 
     ////////////////////////////////////////////////////////
     // step 3. process each connected component.
@@ -1765,7 +1765,7 @@ zarray_t *apriltag_quad_thresh(apriltag_detector_t *td, image_u8_t *im)
 
     workerpool_run(td->wp);
 
-    timeprofile_stamp(td->tp, "fit quads to clusters");
+//     timeprofile_stamp(td->tp, "fit quads to clusters");
 
     if (td->debug) {
         FILE *f = fopen("debug_lines.ps", "w");

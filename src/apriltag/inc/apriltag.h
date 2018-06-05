@@ -43,7 +43,7 @@ extern "C" {
 #include "common/image_u8.h"
 #include "common/zarray.h"
 #include "common/workerpool.h"
-#include "common/timeprofile.h"
+// #include "common/timeprofile.h"
 #include <pthread.h>
 
 #define APRILTAG_TASKS_PER_THREAD_TARGET 10
@@ -179,7 +179,7 @@ struct apriltag_detector
 
     ///////////////////////////////////////////////////////////////
     // Statistics relating to last processed frame
-    timeprofile_t *tp;
+//     timeprofile_t *tp;
 
     uint32_t nedges;
     uint32_t nsegments;
