@@ -34,11 +34,20 @@ either expressed or implied, of the Regents of The University of Michigan.
 #define _IMAGE_U8_H
 
 #include <stdint.h>
-#include "image_types.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+typedef struct image_u8 image_u8_t;
+struct image_u8
+{
+    const int32_t width;
+    const int32_t height;
+    const int32_t stride;
+
+    uint8_t *buf;
+};
 
 typedef struct image_u8_lut image_u8_lut_t;
 struct image_u8_lut
