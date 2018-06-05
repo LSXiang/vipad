@@ -46,7 +46,7 @@ either expressed or implied, of the Regents of The University of Michigan.
 #include "common/unionfind.h"
 #include "common/timeprofile.h"
 #include "common/zmaxheap.h"
-#include "common/postscript_utils.h"
+// #include "common/postscript_utils.h"
 #include "common/math_util.h"
 
 static inline uint32_t u64hash_2(uint64_t x) {
@@ -1781,7 +1781,7 @@ zarray_t *apriltag_quad_thresh(apriltag_detector_t *td, image_u8_t *im)
         fprintf(f, "0 %d translate\n", im2->height);
         fprintf(f, "1 -1 scale\n");
 
-        postscript_image(f, im);
+//         postscript_image(f, im);
 
         for (int i = 0; i < zarray_size(quads); i++) {
             struct quad *q;

@@ -26,7 +26,7 @@ License along with this library; if not, see <http://www.gnu.org/licenses/>.
 #include <math.h>
 
 #include "math_util.h"
-#include "pnm.h"
+// #include "pnm.h"
 
 #include "image_u8x3.h"
 
@@ -82,52 +82,52 @@ void image_u8x3_destroy(image_u8x3_t *im)
 // PNM file i/o
 
 // Create an RGB image from PNM
-image_u8x3_t *image_u8x3_create_from_pnm(const char *path)
-{
-    pnm_t *pnm = pnm_create_from_file(path);
-    if (pnm == NULL)
-        return NULL;
-
-    image_u8x3_t *im = NULL;
-
-    switch (pnm->format) {
-        case PNM_FORMAT_GRAY: {
-            im = image_u8x3_create(pnm->width, pnm->height);
-
-            for (int y = 0; y < im->height; y++) {
-                for (int x = 0; x < im->width; x++) {
-                    uint8_t gray = pnm->buf[y*im->width + x];
-                    im->buf[y*im->stride + x*3 + 0] = gray;
-                    im->buf[y*im->stride + x*3 + 1] = gray;
-                    im->buf[y*im->stride + x*3 + 2] = gray;
-                }
-            }
-
-            break;
-        }
-
-        case PNM_FORMAT_RGB: {
-            im = image_u8x3_create(pnm->width, pnm->height);
-
-            for (int y = 0; y < im->height; y++) {
-                for (int x = 0; x < im->width; x++) {
-                    uint8_t r = pnm->buf[y*im->width*3 + 3*x];
-                    uint8_t g = pnm->buf[y*im->width*3 + 3*x+1];
-                    uint8_t b = pnm->buf[y*im->width*3 + 3*x+2];
-
-                    im->buf[y*im->stride + x*3 + 0] = r;
-                    im->buf[y*im->stride + x*3 + 1] = g;
-                    im->buf[y*im->stride + x*3 + 2] = b;
-                }
-            }
-
-            break;
-        }
-    }
-
-    pnm_destroy(pnm);
-    return im;
-}
+// image_u8x3_t *image_u8x3_create_from_pnm(const char *path)
+// {
+//     pnm_t *pnm = pnm_create_from_file(path);
+//     if (pnm == NULL)
+//         return NULL;
+// 
+//     image_u8x3_t *im = NULL;
+// 
+//     switch (pnm->format) {
+//         case PNM_FORMAT_GRAY: {
+//             im = image_u8x3_create(pnm->width, pnm->height);
+// 
+//             for (int y = 0; y < im->height; y++) {
+//                 for (int x = 0; x < im->width; x++) {
+//                     uint8_t gray = pnm->buf[y*im->width + x];
+//                     im->buf[y*im->stride + x*3 + 0] = gray;
+//                     im->buf[y*im->stride + x*3 + 1] = gray;
+//                     im->buf[y*im->stride + x*3 + 2] = gray;
+//                 }
+//             }
+// 
+//             break;
+//         }
+// 
+//         case PNM_FORMAT_RGB: {
+//             im = image_u8x3_create(pnm->width, pnm->height);
+// 
+//             for (int y = 0; y < im->height; y++) {
+//                 for (int x = 0; x < im->width; x++) {
+//                     uint8_t r = pnm->buf[y*im->width*3 + 3*x];
+//                     uint8_t g = pnm->buf[y*im->width*3 + 3*x+1];
+//                     uint8_t b = pnm->buf[y*im->width*3 + 3*x+2];
+// 
+//                     im->buf[y*im->stride + x*3 + 0] = r;
+//                     im->buf[y*im->stride + x*3 + 1] = g;
+//                     im->buf[y*im->stride + x*3 + 2] = b;
+//                 }
+//             }
+// 
+//             break;
+//         }
+//     }
+// 
+//     pnm_destroy(pnm);
+//     return im;
+// }
 
 int image_u8x3_write_pnm(const image_u8x3_t *im, const char *path)
 {
