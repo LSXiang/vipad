@@ -1524,42 +1524,42 @@ zarray_t *apriltag_quad_thresh(apriltag_detector_t *td, image_u8_t *im)
 
     unionfind_t *uf = unionfind_create(w * h);
 
-    if (td->nthreads <= 1) {
+//     if (td->nthreads <= 1) {
         for (int y = 0; y < h - 1; y++) {
             do_unionfind_line(uf, threshim, h, w, ts, y);
         }
-    } else {
-        int sz = h - 1;
-        int chunksize = 1 + sz / (APRILTAG_TASKS_PER_THREAD_TARGET * td->nthreads);
-        struct unionfind_task tasks[sz / chunksize + 1];
-
-        int ntasks = 0;
-
-        for (int i = 0; i < sz; i += chunksize) {
-            // each task will process [y0, y1). Note that this attaches
-            // each cell to the right and down, so row y1 *is* potentially modified.
-            //
-            // for parallelization, make sure that each task doesn't touch rows
-            // used by another thread.
-            tasks[ntasks].y0 = i;
-            tasks[ntasks].y1 = imin(sz, i + chunksize - 1);
-            tasks[ntasks].h = h;
-            tasks[ntasks].w = w;
-            tasks[ntasks].s = ts;
-            tasks[ntasks].uf = uf;
-            tasks[ntasks].im = threshim;
-
-            workerpool_add_task(td->wp, do_unionfind_task, &tasks[ntasks]);
-            ntasks++;
-        }
-
-        workerpool_run(td->wp);
-
-        // XXX stitch together the different chunks.
-        for (int i = 0; i + 1 < ntasks; i++) {
-            do_unionfind_line(uf, threshim, h, w, ts, tasks[i].y1);
-        }
-    }
+//     } else {
+//         int sz = h - 1;
+//         int chunksize = 1 + sz / (APRILTAG_TASKS_PER_THREAD_TARGET * td->nthreads);
+//         struct unionfind_task tasks[sz / chunksize + 1];
+// 
+//         int ntasks = 0;
+// 
+//         for (int i = 0; i < sz; i += chunksize) {
+//             // each task will process [y0, y1). Note that this attaches
+//             // each cell to the right and down, so row y1 *is* potentially modified.
+//             //
+//             // for parallelization, make sure that each task doesn't touch rows
+//             // used by another thread.
+//             tasks[ntasks].y0 = i;
+//             tasks[ntasks].y1 = imin(sz, i + chunksize - 1);
+//             tasks[ntasks].h = h;
+//             tasks[ntasks].w = w;
+//             tasks[ntasks].s = ts;
+//             tasks[ntasks].uf = uf;
+//             tasks[ntasks].im = threshim;
+// 
+//             workerpool_add_task(td->wp, do_unionfind_task, &tasks[ntasks]);
+//             ntasks++;
+//         }
+// 
+//         workerpool_run(td->wp);
+// 
+//         // XXX stitch together the different chunks.
+//         for (int i = 0; i + 1 < ntasks; i++) {
+//             do_unionfind_line(uf, threshim, h, w, ts, tasks[i].y1);
+//         }
+//     }
 
 //     timeprofile_stamp(td->tp, "unionfind");
 
@@ -1744,25 +1744,53 @@ zarray_t *apriltag_quad_thresh(apriltag_detector_t *td, image_u8_t *im)
     zarray_t *quads = zarray_create(sizeof(struct quad));
 
     int sz = zarray_size(clusters);
-    int chunksize = 1 + sz / (APRILTAG_TASKS_PER_THREAD_TARGET * td->nthreads);
-    struct quad_task tasks[sz / chunksize + 1];
-
-    int ntasks = 0;
-    for (int i = 0; i < sz; i += chunksize) {
-        tasks[ntasks].td = td;
-        tasks[ntasks].cidx0 = i;
-        tasks[ntasks].cidx1 = imin(sz, i + chunksize);
-        tasks[ntasks].h = h;
-        tasks[ntasks].w = w;
-        tasks[ntasks].quads = quads;
-        tasks[ntasks].clusters = clusters;
-        tasks[ntasks].im = im;
-
-        workerpool_add_task(td->wp, do_quad_task, &tasks[ntasks]);
-        ntasks++;
+//     int chunksize = 1 + sz / (APRILTAG_TASKS_PER_THREAD_TARGET * td->nthreads);
+//     struct quad_task tasks[sz / chunksize + 1];
+// 
+//     int ntasks = 0;
+//     for (int i = 0; i < sz; i += chunksize) {
+//         tasks[ntasks].td = td;
+//         tasks[ntasks].cidx0 = i;
+//         tasks[ntasks].cidx1 = imin(sz, i + chunksize);
+//         tasks[ntasks].h = h;
+//         tasks[ntasks].w = w;
+//         tasks[ntasks].quads = quads;
+//         tasks[ntasks].clusters = clusters;
+//         tasks[ntasks].im = im;
+// 
+//         workerpool_add_task(td->wp, do_quad_task, &tasks[ntasks]);
+//         ntasks++;
+//     }
+// 
+//     workerpool_run(td->wp);
+    
+    if (quads) {
+        for (int i = 0; i < sz; i ++) {
+            zarray_t *cluster;
+            zarray_get(clusters, i, &cluster);
+            
+            if (zarray_size(cluster) < td->qtp.min_cluster_pixels) {
+                continue;
+            }
+            
+            // a cluster should contain only boundary points around the
+            // tag. it cannot be bigger than the whole screen. (Reject
+            // large connected blobs that will be prohibitively slow to
+            // fit quads to.) A typical point along an edge is added three
+            // times (because it has 3 neighbors). The maximum perimeter
+            // is 2w+2h.
+            if (zarray_size(cluster) > 3*(2*w + 2*h)) {
+                continue;
+            }
+            
+            struct quad quad;
+            memset(&quad, 0, sizeof(struct quad));
+            
+            if (fit_quad(td, im, cluster, &quad)) {
+                zarray_add(quads, &quad);
+            }
+        }
     }
-
-    workerpool_run(td->wp);
 
 //     timeprofile_stamp(td->tp, "fit quads to clusters");
 

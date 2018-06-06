@@ -129,8 +129,8 @@ struct apriltag_detector
     ///////////////////////////////////////////////////////////////
     // User-configurable parameters.
 
-    // How many threads should be used?
-    int nthreads;
+//     // How many threads should be used?
+//     int nthreads;
 
     // detection of quads can be done on a lower-resolution image,
     // improving speed at a cost of pose accuracy and a slight

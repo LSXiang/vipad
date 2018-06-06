@@ -89,7 +89,7 @@ int main(int argc, char *argv[])
 //     td->refine_pose = getopt_get_bool(getopt, "refine-pose");
     td->quad_decimate = 1.0f;
     td->quad_sigma = 0.0f;
-    td->nthreads = 4;
+//     td->nthreads = 4;
 //     td->debug = 0;
     td->refine_edges = 1;
     td->refine_decode = 0;
@@ -199,7 +199,7 @@ int main(int argc, char *argv[])
         zarray_destroy(detections);
 
         imshow("Tag Detections", frame);
-        if (waitKey(10) == 27)
+        if (waitKey(1) == 27)
             break;
     }
 

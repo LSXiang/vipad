@@ -38,7 +38,7 @@ either expressed or implied, of the Regents of The University of Michigan.
 #include <string.h>
 #include <stdio.h>
 #include <inttypes.h>
-#include <sys/time.h>
+// #include <sys/time.h>
 
 #include "common/image_u8.h"
 // #include "common/image_u8x3.h"
@@ -349,7 +349,7 @@ apriltag_detector_t *apriltag_detector_create()
 {
     apriltag_detector_t *td = (apriltag_detector_t*) calloc(1, sizeof(apriltag_detector_t));
 
-    td->nthreads = 1;
+//     td->nthreads = 1;
     td->quad_decimate = 1.0;
     td->quad_sigma = 0.0;
 
@@ -363,7 +363,7 @@ apriltag_detector_t *apriltag_detector_create()
 
     td->tag_families = zarray_create(sizeof(apriltag_family_t*));
 
-    pthread_mutex_init(&td->mutex, NULL);
+//     pthread_mutex_init(&td->mutex, NULL);
 
 //     td->tp = timeprofile_create();
 
@@ -382,7 +382,7 @@ apriltag_detector_t *apriltag_detector_create()
 void apriltag_detector_destroy(apriltag_detector_t *td)
 {
 //     timeprofile_destroy(td->tp);
-    workerpool_destroy(td->wp);
+//     workerpool_destroy(td->wp);
 
     apriltag_detector_clear_families(td);
 
@@ -390,17 +390,17 @@ void apriltag_detector_destroy(apriltag_detector_t *td)
     free(td);
 }
 
-struct quad_decode_task
-{
-    int i0, i1;
-    zarray_t *quads;
-    apriltag_detector_t *td;
-
-    image_u8_t *im;
-    zarray_t *detections;
-
-    image_u8_t *im_samples;
-};
+// struct quad_decode_task
+// {
+//     int i0, i1;
+//     zarray_t *quads;
+//     apriltag_detector_t *td;
+// 
+//     image_u8_t *im;
+//     zarray_t *detections;
+// 
+//     image_u8_t *im_samples;
+// };
 
 struct evaluate_quad_ret
 {
@@ -955,118 +955,118 @@ static void refine_edges(apriltag_detector_t *td, image_u8_t *im_orig, struct qu
     }
 }
 
-static void quad_decode_task(void *_u)
-{
-    struct quad_decode_task *task = (struct quad_decode_task*) _u;
-    apriltag_detector_t *td = task->td;
-    image_u8_t *im = task->im;
-
-    for (int quadidx = task->i0; quadidx < task->i1; quadidx++) {
-        struct quad *quad_original;
-        zarray_get_volatile(task->quads, quadidx, &quad_original);
-
-        // refine edges is not dependent upon the tag family, thus
-        // apply this optimization BEFORE the other work.
-        //if (td->quad_decimate > 1 && td->refine_edges) {
-        if (td->refine_edges) {
-            refine_edges(td, im, quad_original);
-        }
-
-        // make sure the homographies are computed...
-        if (quad_update_homographies(quad_original))
-            continue;
-
-        for (int famidx = 0; famidx < zarray_size(td->tag_families); famidx++) {
-            apriltag_family_t *family;
-            zarray_get(td->tag_families, famidx, &family);
-
-            double goodness = 0;
-
-            // since the geometry of tag families can vary, start any
-            // optimization process over with the original quad.
-            struct quad *quad = quad_copy(quad_original);
-
-            // improve the quad corner positions by minimizing the
-            // variance within each intra-bit area.
-            if (td->refine_pose) {
-                // NB: We potentially step an integer
-                // number of times in each direction. To make each
-                // sample as useful as possible, the step sizes should
-                // not be integer multiples of each other. (I.e.,
-                // probably don't use 1, 0.5, 0.25, etc.)
-
-                // XXX Tunable
-                float stepsizes[] = { 1, .4, .16, .064 };
-                int nstepsizes = sizeof(stepsizes)/sizeof(float);
-
-                goodness = optimize_quad_generic(family, im, quad, stepsizes, nstepsizes, score_goodness, NULL);
-            }
-
-            if (td->refine_decode) {
-                // this optimizes decodability, but we don't report
-                // that value to the user.  (so discard return value.)
-                // XXX Tunable
-                float stepsizes[] = { .4 };
-                int nstepsizes = sizeof(stepsizes)/sizeof(float);
-
-                optimize_quad_generic(family, im, quad, stepsizes, nstepsizes, score_decodability, NULL);
-            }
-
-            struct quick_decode_entry entry;
-
-            float decision_margin = quad_decode(family, im, quad, &entry, task->im_samples);
-
-            if (entry.hamming < 255 && decision_margin >= 0) {
-                apriltag_detection_t *det = calloc(1, sizeof(apriltag_detection_t));
-
-                det->family = family;
-                det->id = entry.id;
-                det->hamming = entry.hamming;
-                det->goodness = goodness;
-                det->decision_margin = decision_margin;
-
-                double theta = -entry.rotation * M_PI / 2.0;
-                double c = cos(theta), s = sin(theta);
-
-                // Fix the rotation of our homography to properly orient the tag
-                matd_t *R = matd_create(3,3);
-                MATD_EL(R, 0, 0) = c;
-                MATD_EL(R, 0, 1) = -s;
-                MATD_EL(R, 1, 0) = s;
-                MATD_EL(R, 1, 1) = c;
-                MATD_EL(R, 2, 2) = 1;
-
-                det->H = matd_op("M*M", quad->H, R);
-
-                matd_destroy(R);
-
-                homography_project(det->H, 0, 0, &det->c[0], &det->c[1]);
-
-                // [-1, -1], [1, -1], [1, 1], [-1, 1], Desired points
-                // [-1, 1], [1, 1], [1, -1], [-1, -1], FLIP Y
-                // adjust the points in det->p so that they correspond to
-                // counter-clockwise around the quad, starting at -1,-1.
-                for (int i = 0; i < 4; i++) {
-                    int tcx = (i == 1 || i == 2) ? 1 : -1;
-                    int tcy = (i < 2) ? 1 : -1;
-
-                    double p[2];
-
-                    homography_project(det->H, tcx, tcy, &p[0], &p[1]);
-
-                    det->p[i][0] = p[0];
-                    det->p[i][1] = p[1];
-                }
-
-                pthread_mutex_lock(&td->mutex);
-                zarray_add(task->detections, &det);
-                pthread_mutex_unlock(&td->mutex);
-            }
-
-            quad_destroy(quad);
-        }
-    }
-}
+// static void quad_decode_task(void *_u)
+// {
+//     struct quad_decode_task *task = (struct quad_decode_task*) _u;
+//     apriltag_detector_t *td = task->td;
+//     image_u8_t *im = task->im;
+// 
+//     for (int quadidx = task->i0; quadidx < task->i1; quadidx++) {
+//         struct quad *quad_original;
+//         zarray_get_volatile(task->quads, quadidx, &quad_original);
+// 
+//         // refine edges is not dependent upon the tag family, thus
+//         // apply this optimization BEFORE the other work.
+//         //if (td->quad_decimate > 1 && td->refine_edges) {
+//         if (td->refine_edges) {
+//             refine_edges(td, im, quad_original);
+//         }
+// 
+//         // make sure the homographies are computed...
+//         if (quad_update_homographies(quad_original))
+//             continue;
+// 
+//         for (int famidx = 0; famidx < zarray_size(td->tag_families); famidx++) {
+//             apriltag_family_t *family;
+//             zarray_get(td->tag_families, famidx, &family);
+// 
+//             double goodness = 0;
+// 
+//             // since the geometry of tag families can vary, start any
+//             // optimization process over with the original quad.
+//             struct quad *quad = quad_copy(quad_original);
+// 
+//             // improve the quad corner positions by minimizing the
+//             // variance within each intra-bit area.
+//             if (td->refine_pose) {
+//                 // NB: We potentially step an integer
+//                 // number of times in each direction. To make each
+//                 // sample as useful as possible, the step sizes should
+//                 // not be integer multiples of each other. (I.e.,
+//                 // probably don't use 1, 0.5, 0.25, etc.)
+// 
+//                 // XXX Tunable
+//                 float stepsizes[] = { 1, .4, .16, .064 };
+//                 int nstepsizes = sizeof(stepsizes)/sizeof(float);
+// 
+//                 goodness = optimize_quad_generic(family, im, quad, stepsizes, nstepsizes, score_goodness, NULL);
+//             }
+// 
+//             if (td->refine_decode) {
+//                 // this optimizes decodability, but we don't report
+//                 // that value to the user.  (so discard return value.)
+//                 // XXX Tunable
+//                 float stepsizes[] = { .4 };
+//                 int nstepsizes = sizeof(stepsizes)/sizeof(float);
+// 
+//                 optimize_quad_generic(family, im, quad, stepsizes, nstepsizes, score_decodability, NULL);
+//             }
+// 
+//             struct quick_decode_entry entry;
+// 
+//             float decision_margin = quad_decode(family, im, quad, &entry, task->im_samples);
+// 
+//             if (entry.hamming < 255 && decision_margin >= 0) {
+//                 apriltag_detection_t *det = calloc(1, sizeof(apriltag_detection_t));
+// 
+//                 det->family = family;
+//                 det->id = entry.id;
+//                 det->hamming = entry.hamming;
+//                 det->goodness = goodness;
+//                 det->decision_margin = decision_margin;
+// 
+//                 double theta = -entry.rotation * M_PI / 2.0;
+//                 double c = cos(theta), s = sin(theta);
+// 
+//                 // Fix the rotation of our homography to properly orient the tag
+//                 matd_t *R = matd_create(3,3);
+//                 MATD_EL(R, 0, 0) = c;
+//                 MATD_EL(R, 0, 1) = -s;
+//                 MATD_EL(R, 1, 0) = s;
+//                 MATD_EL(R, 1, 1) = c;
+//                 MATD_EL(R, 2, 2) = 1;
+// 
+//                 det->H = matd_op("M*M", quad->H, R);
+// 
+//                 matd_destroy(R);
+// 
+//                 homography_project(det->H, 0, 0, &det->c[0], &det->c[1]);
+// 
+//                 // [-1, -1], [1, -1], [1, 1], [-1, 1], Desired points
+//                 // [-1, 1], [1, 1], [1, -1], [-1, -1], FLIP Y
+//                 // adjust the points in det->p so that they correspond to
+//                 // counter-clockwise around the quad, starting at -1,-1.
+//                 for (int i = 0; i < 4; i++) {
+//                     int tcx = (i == 1 || i == 2) ? 1 : -1;
+//                     int tcy = (i < 2) ? 1 : -1;
+// 
+//                     double p[2];
+// 
+//                     homography_project(det->H, tcx, tcy, &p[0], &p[1]);
+// 
+//                     det->p[i][0] = p[0];
+//                     det->p[i][1] = p[1];
+//                 }
+// 
+//                 pthread_mutex_lock(&td->mutex);
+//                 zarray_add(task->detections, &det);
+//                 pthread_mutex_unlock(&td->mutex);
+//             }
+// 
+//             quad_destroy(quad);
+//         }
+//     }
+// }
 
 void apriltag_detection_destroy(apriltag_detection_t *det)
 {
@@ -1099,10 +1099,10 @@ zarray_t *apriltag_detector_detect(apriltag_detector_t *td, image_u8_t *im_orig)
         return s;
     }
 
-    if (td->wp == NULL || td->nthreads != workerpool_get_nthreads(td->wp)) {
-        workerpool_destroy(td->wp);
-        td->wp = workerpool_create(td->nthreads);
-    }
+//     if (td->wp == NULL || td->nthreads != workerpool_get_nthreads(td->wp)) {
+//         workerpool_destroy(td->wp);
+//         td->wp = workerpool_create(td->nthreads);
+//     }
 
 //     timeprofile_clear(td->tp);
 //     timeprofile_stamp(td->tp, "init");
@@ -1221,33 +1221,137 @@ zarray_t *apriltag_detector_detect(apriltag_detector_t *td, image_u8_t *im_orig)
     // Step 2. Decode tags from each quad.
     if (1) {
 //         image_u8_t *im_samples = td->debug ? image_u8_copy(im_orig) : NULL;
-        image_u8_t *im_samples = NULL;
+//         image_u8_t *im_samples = NULL;
 
-        int chunksize = 1 + zarray_size(quads) / (APRILTAG_TASKS_PER_THREAD_TARGET * td->nthreads);
+//         int chunksize = 1 + zarray_size(quads) / (APRILTAG_TASKS_PER_THREAD_TARGET * td->nthreads);
+// 
+//         struct quad_decode_task tasks[zarray_size(quads) / chunksize + 1];
+// 
+//         int ntasks = 0;
+//         for (int i = 0; i < zarray_size(quads); i+= chunksize) {
+//             tasks[ntasks].i0 = i;
+//             tasks[ntasks].i1 = imin(zarray_size(quads), i + chunksize);
+//             tasks[ntasks].quads = quads;
+//             tasks[ntasks].td = td;
+//             tasks[ntasks].im = im_orig;
+//             tasks[ntasks].detections = detections;
+// 
+//             tasks[ntasks].im_samples = im_samples;
+// 
+//             workerpool_add_task(td->wp, quad_decode_task, &tasks[ntasks]);
+//             ntasks++;
+//         }
+// 
+//         workerpool_run(td->wp);
+        
+        for (int i = 0; i < zarray_size(quads); i++) {
+            struct quad *quad_original;
+            zarray_get_volatile(quads, i, &quad_original);
+            
+            // refine edges is not dependent upon the tag family, thus
+            // apply this optimazation BEFORE the other work.
+            //if (td->quad_decimate > 1 && td->refine_edges) {
+            if (td->refine_edges) {
+                refine_edges(td, im_orig, quad_original);
+            }
+            
+            // make sure the homographies are computed...
+            if (quad_update_homographies(quad_original))
+                continue;
+            
+            for (int famidx = 0; famidx < zarray_size(td->tag_families); famidx ++) {
+                apriltag_family_t *family;
+                zarray_get(td->tag_families, famidx, &family);
+                
+                double goodness = 0;
+                
+                // since the geometry of tag families can vary, start any
+                // optimization process over with the original quad.
+                struct quad *quad = quad_copy(quad_original);
+                
+                // improve the quad corner positions by minimizing the
+                // variance within each intra-bit area.
+                if (td->refine_pose) {
+                    // NB: We potentially step an integer
+                    // number of times in each direction. To make each
+                    // sample as useful as possible, the step sizes should
+                    // not be integer multiples of each other. (I.e.,
+                    // probably don't use 1, 0.5, 0.25, etc.)
 
-        struct quad_decode_task tasks[zarray_size(quads) / chunksize + 1];
+                    // XXX Tunable
+                    float stepsizes[] = { 1, .4, .16, .064 };
+                    int nstepsizes = sizeof(stepsizes)/sizeof(float);
 
-        int ntasks = 0;
-        for (int i = 0; i < zarray_size(quads); i+= chunksize) {
-            tasks[ntasks].i0 = i;
-            tasks[ntasks].i1 = imin(zarray_size(quads), i + chunksize);
-            tasks[ntasks].quads = quads;
-            tasks[ntasks].td = td;
-            tasks[ntasks].im = im_orig;
-            tasks[ntasks].detections = detections;
+                    goodness = optimize_quad_generic(family, im_orig, quad, stepsizes, nstepsizes, score_goodness, NULL);
+                }
+                
+                if (td->refine_decode) {
+                    // this optimizes decodability, but we don't report
+                    // that value to the user.  (so discard return value.)
+                    // XXX Tunable
+                    float stepsizes[] = { .4 };
+                    int nstepsizes = sizeof(stepsizes)/sizeof(float);
 
-            tasks[ntasks].im_samples = im_samples;
+                    optimize_quad_generic(family, im_orig, quad, stepsizes, nstepsizes, score_decodability, NULL);
+                }
+                
+                struct quick_decode_entry entry;
+                
+                float decision_margin = quad_decode(family, im_orig, quad, &entry, NULL);
+                
+                if (entry.hamming < 255 && decision_margin >= 0) {
+                    apriltag_detection_t *det = calloc(1, sizeof(apriltag_detection_t));
+                    
+                    det->family = family;
+                    det->id = entry.id;
+                    det->hamming = entry.hamming;
+                    det->goodness = goodness;
+                    det->decision_margin = decision_margin;
+                    
+                    double theta = -entry.rotation * M_PI / 2.0;
+                    double c = cos(theta), s = sin(theta);
+                    
+                    // Fix the rotation of our homography to properly orient the tag_families
+                    matd_t *R = matd_create(3, 3);
+                    MATD_EL(R, 0, 0) = c;
+                    MATD_EL(R, 0, 1) = -s;
+                    MATD_EL(R, 1, 0) = s;
+                    MATD_EL(R, 1, 1) = c;
+                    MATD_EL(R, 2, 2) = 1;
+                    
+                    det->H = matd_op("M*M", quad->H, R);
+                    
+                    matd_destroy(R);
+                    
+                    homography_project(det->H, 0, 0, &det->c[0], &det->c[1]);
+                    
+                    // [-1, -1], [1, -1], [1, 1], [-1, 1], Desired points
+                    // [-1, 1], [1, 1], [1, -1], [-1, -1], FLIP Y
+                    // adjust the points in det->p so that they correspond to
+                    // counter-clockwise around the quad, starting at -1,-1.
+                    for (int i = 0; i < 4; i++) {
+                        int tcx = (i == 1 || i == 2) ? 1 : -1;
+                        int tcy = (i < 2) ? 1 : -1;
 
-            workerpool_add_task(td->wp, quad_decode_task, &tasks[ntasks]);
-            ntasks++;
+                        double p[2];
+
+                        homography_project(det->H, tcx, tcy, &p[0], &p[1]);
+
+                        det->p[i][0] = p[0];
+                        det->p[i][1] = p[1];
+                    }
+
+                    zarray_add(detections, &det);
+                }
+                
+                quad_destroy(quad);
+            }
         }
 
-        workerpool_run(td->wp);
-
-        if (im_samples != NULL) {
-            image_u8_write_pnm(im_samples, "debug_samples.pnm");
-            image_u8_destroy(im_samples);
-        }
+//         if (im_samples != NULL) {
+//             image_u8_write_pnm(im_samples, "debug_samples.pnm");
+//             image_u8_destroy(im_samples);
+//         }
     }
 
 //     if (td->debug) {
