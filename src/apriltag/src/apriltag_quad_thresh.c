@@ -74,24 +74,24 @@ struct pt
     int16_t gx, gy;
 };
 
-struct unionfind_task
-{
-    int y0, y1;
-    int w, h, s;
-    unionfind_t *uf;
-    image_u8_t *im;
-};
-
-struct quad_task
-{
-    zarray_t *clusters;
-    int cidx0, cidx1; // [cidx0, cidx1)
-    zarray_t *quads;
-    apriltag_detector_t *td;
-    int w, h;
-
-    image_u8_t *im;
-};
+// struct unionfind_task
+// {
+//     int y0, y1;
+//     int w, h, s;
+//     unionfind_t *uf;
+//     image_u8_t *im;
+// };
+// 
+// struct quad_task
+// {
+//     zarray_t *clusters;
+//     int cidx0, cidx1; // [cidx0, cidx1)
+//     zarray_t *quads;
+//     apriltag_detector_t *td;
+//     int w, h;
+// 
+//     image_u8_t *im;
+// };
 
 struct remove_vertex
 {
@@ -376,9 +376,8 @@ int err_compare_descending(const void *_a, const void *_b)
   1. Identify A) white points near a black point and B) black points near a white point.
 
   2. Find the connected components within each of the classes above,
-  yielding clusters of "white-near-black" and
-  "black-near-white". (These two classes are kept separate). Each
-  segment has a unique id.
+  yielding clusters of "white-near-black" and "black-near-white". 
+  (These two classes are kept separate). Each segment has a unique id.
 
   3. For every pair of "white-near-black" and "black-near-white"
   clusters, find the set of points that are in one and adjacent to the
@@ -1116,53 +1115,53 @@ static void do_unionfind_line(unionfind_t *uf, image_u8_t *im, int h, int w, int
 }
 #undef DO_UNIONFIND
 
-static void do_unionfind_task(void *p)
-{
-    struct unionfind_task *task = (struct unionfind_task*) p;
-
-    for (int y = task->y0; y < task->y1; y++) {
-        do_unionfind_line(task->uf, task->im, task->h, task->w, task->s, y);
-    }
-}
-
-static void do_quad_task(void *p)
-{
-    struct quad_task *task = (struct quad_task*) p;
-
-    zarray_t *clusters = task->clusters;
-    zarray_t *quads = task->quads;
-    apriltag_detector_t *td = task->td;
-    int w = task->w, h = task->h;
-
-    for (int cidx = task->cidx0; cidx < task->cidx1; cidx++) {
-
-        zarray_t *cluster;
-        zarray_get(clusters, cidx, &cluster);
-
-        if (zarray_size(cluster) < td->qtp.min_cluster_pixels)
-            continue;
-
-        // a cluster should contain only boundary points around the
-        // tag. it cannot be bigger than the whole screen. (Reject
-        // large connected blobs that will be prohibitively slow to
-        // fit quads to.) A typical point along an edge is added three
-        // times (because it has 3 neighbors). The maximum perimeter
-        // is 2w+2h.
-        if (zarray_size(cluster) > 3*(2*w+2*h)) {
-            continue;
-        }
-
-        struct quad quad;
-        memset(&quad, 0, sizeof(struct quad));
-
-        if (fit_quad(td, task->im, cluster, &quad)) {
-            pthread_mutex_lock(&td->mutex);
-
-            zarray_add(quads, &quad);
-            pthread_mutex_unlock(&td->mutex);
-        }
-    }
-}
+// static void do_unionfind_task(void *p)
+// {
+//     struct unionfind_task *task = (struct unionfind_task*) p;
+// 
+//     for (int y = task->y0; y < task->y1; y++) {
+//         do_unionfind_line(task->uf, task->im, task->h, task->w, task->s, y);
+//     }
+// }
+// 
+// static void do_quad_task(void *p)
+// {
+//     struct quad_task *task = (struct quad_task*) p;
+// 
+//     zarray_t *clusters = task->clusters;
+//     zarray_t *quads = task->quads;
+//     apriltag_detector_t *td = task->td;
+//     int w = task->w, h = task->h;
+// 
+//     for (int cidx = task->cidx0; cidx < task->cidx1; cidx++) {
+// 
+//         zarray_t *cluster;
+//         zarray_get(clusters, cidx, &cluster);
+// 
+//         if (zarray_size(cluster) < td->qtp.min_cluster_pixels)
+//             continue;
+// 
+//         // a cluster should contain only boundary points around the
+//         // tag. it cannot be bigger than the whole screen. (Reject
+//         // large connected blobs that will be prohibitively slow to
+//         // fit quads to.) A typical point along an edge is added three
+//         // times (because it has 3 neighbors). The maximum perimeter
+//         // is 2w+2h.
+//         if (zarray_size(cluster) > 3*(2*w+2*h)) {
+//             continue;
+//         }
+// 
+//         struct quad quad;
+//         memset(&quad, 0, sizeof(struct quad));
+// 
+//         if (fit_quad(td, task->im, cluster, &quad)) {
+//             pthread_mutex_lock(&td->mutex);
+// 
+//             zarray_add(quads, &quad);
+//             pthread_mutex_unlock(&td->mutex);
+//         }
+//     }
+// }
 
 image_u8_t *threshold(apriltag_detector_t *td, image_u8_t *im)
 {
