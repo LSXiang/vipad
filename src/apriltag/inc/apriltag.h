@@ -42,9 +42,6 @@ extern "C" {
 #include "common/matd.h"
 #include "common/image_u8.h"
 #include "common/zarray.h"
-// #include "common/workerpool.h"
-// #include "common/timeprofile.h"
-// #include <pthread.h>
 
 #define APRILTAG_TASKS_PER_THREAD_TARGET 10
 
@@ -128,9 +125,6 @@ struct apriltag_detector
     ///////////////////////////////////////////////////////////////
     // User-configurable parameters.
 
-//     // How many threads should be used?
-//     int nthreads;
-
     // detection of quads can be done on a lower-resolution image,
     // improving speed at a cost of pose accuracy and a slight
     // decrease in detection rate. Decoding the binary payload is
@@ -152,33 +146,7 @@ struct apriltag_detector
     // quad_decimate = 1.
     int refine_edges;
 
-//     // when non-zero, detections are refined in a way intended to
-//     // increase the number of detected tags. Especially effective for
-//     // very small tags near the resolution threshold (e.g. 10px on a
-//     // side).
-//     int refine_decode;
-
-//     // when non-zero, detections are refined in a way intended to
-//     // increase the accuracy of the extracted pose. This is done by
-//     // maximizing the contrast around the black and white border of
-//     // the tag. This generally increases the number of successfully
-//     // detected tags, though not as effectively (or quickly) as
-//     // refine_decode.
-//     //
-//     // This option must be enabled in order for "goodness" to be
-//     // computed.
-//     int refine_pose;
-
-//     // When non-zero, write a variety of debugging images to the
-//     // current working directory at various stages through the
-//     // detection process. (Somewhat slow).
-//     int debug;
-
     struct apriltag_quad_thresh_params qtp;
-
-    ///////////////////////////////////////////////////////////////
-    // Statistics relating to last processed frame
-//     timeprofile_t *tp;
 
     uint32_t nedges;
     uint32_t nsegments;
@@ -191,12 +159,6 @@ struct apriltag_detector
     // between multiple users. The user should ultimately destroy the
     // tag family passed into the constructor.
     zarray_t *tag_families;
-
-//     // Used to manage multi-threading.
-//     workerpool_t *wp;
-// 
-//     // Used for thread safety.
-//     pthread_mutex_t mutex;
 };
 
 // Represents the detection of a tag. These are returned to the user
@@ -215,11 +177,6 @@ struct apriltag_detection
     // NOTE: As of this implementation, the detector cannot detect tags with
     // a hamming distance greater than 2.
     int hamming;
-
-//     // A measure of the quality of tag localization: measures the
-//     // average contrast of the pixels around the border of the
-//     // tag. refine_pose must be enabled, or this field will be zero.
-//     float goodness;
 
     // A measure of the quality of the binary decoding process: the
     // average difference between the intensity of a data bit versus

@@ -40,13 +40,8 @@ either expressed or implied, of the Regents of The University of Michigan.
 #include <stdint.h>
 
 #include "apriltag.h"
-// #include "common/image_u8x3.h"
 #include "common/zarray.h"
-// #include "common/zhash.h"
 #include "common/unionfind.h"
-// #include "common/timeprofile.h"
-// #include "common/zmaxheap.h"
-// #include "common/postscript_utils.h"
 #include "common/math_util.h"
 
 static inline uint32_t u64hash_2(uint64_t x) {
@@ -72,42 +67,6 @@ struct pt
     uint16_t x, y;
     float theta;
     int16_t gx, gy;
-};
-
-// struct unionfind_task
-// {
-//     int y0, y1;
-//     int w, h, s;
-//     unionfind_t *uf;
-//     image_u8_t *im;
-// };
-// 
-// struct quad_task
-// {
-//     zarray_t *clusters;
-//     int cidx0, cidx1; // [cidx0, cidx1)
-//     zarray_t *quads;
-//     apriltag_detector_t *td;
-//     int w, h;
-// 
-//     image_u8_t *im;
-// };
-
-struct remove_vertex
-{
-    int i;           // which vertex to remove?
-    int left, right; // left vertex, right vertex
-
-    double err;
-};
-
-struct segment
-{
-    int is_vertex;
-
-    // always greater than zero, but right can be > size, which denotes
-    // a wrap around back to the beginning of the points. and left < right.
-    int left, right;
 };
 
 struct line_fit_pt
@@ -561,117 +520,6 @@ int quad_segment_maxima(apriltag_detector_t *td, zarray_t *cluster, struct line_
     return 0;
 }
 
-// // returns 0 if the cluster looks bad.
-// int quad_segment_agg(apriltag_detector_t *td, zarray_t *cluster, struct line_fit_pt *lfps, int indices[4])
-// {
-//     int sz = zarray_size(cluster);
-// 
-//     zmaxheap_t *heap = zmaxheap_create(sizeof(struct remove_vertex*));
-// 
-//     // We will initially allocate sz rvs. We then have two types of
-//     // iterations: some iterations that are no-ops in terms of
-//     // allocations, and those that remove a vertex and allocate two
-//     // more children.  This will happen at most (sz-4) times.  Thus we
-//     // need: sz + 2*(sz-4) entries.
-// 
-//     int rvalloc_pos = 0;
-//     int rvalloc_size = 3*sz;
-//     struct remove_vertex *rvalloc = calloc(rvalloc_size, sizeof(struct remove_vertex));
-// 
-//     struct segment *segs = calloc(sz, sizeof(struct segment));
-// 
-//     // populate with initial entries
-//     for (int i = 0; i < sz; i++) {
-//         struct remove_vertex *rv = &rvalloc[rvalloc_pos++];
-//         rv->i = i;
-//         if (i == 0) {
-//             rv->left = sz-1;
-//             rv->right = 1;
-//         } else {
-//             rv->left  = i-1;
-//             rv->right = (i+1) % sz;
-//         }
-// 
-//         fit_line(lfps, sz, rv->left, rv->right, NULL, NULL, &rv->err);
-// 
-//         zmaxheap_add(heap, &rv, -rv->err);
-// 
-//         segs[i].left = rv->left;
-//         segs[i].right = rv->right;
-//         segs[i].is_vertex = 1;
-//     }
-// 
-//     int nvertices = sz;
-// 
-//     while (nvertices > 4) {
-//         assert(rvalloc_pos < rvalloc_size);
-// 
-//         struct remove_vertex *rv;
-//         float err;
-// 
-//         int res = zmaxheap_remove_max(heap, &rv, &err);
-//         if (!res)
-//             return 0;
-//         assert(res);
-// 
-//         // is this remove_vertex valid? (Or has one of the left/right
-//         // vertices changes since we last looked?)
-//         if (!segs[rv->i].is_vertex ||
-//             !segs[rv->left].is_vertex ||
-//             !segs[rv->right].is_vertex) {
-//             continue;
-//         }
-// 
-//         // we now merge.
-//         assert(segs[rv->i].is_vertex);
-// 
-//         segs[rv->i].is_vertex = 0;
-//         segs[rv->left].right = rv->right;
-//         segs[rv->right].left = rv->left;
-// 
-//         // create the join to the left
-//         if (1) {
-//             struct remove_vertex *child = &rvalloc[rvalloc_pos++];
-//             child->i = rv->left;
-//             child->left = segs[rv->left].left;
-//             child->right = rv->right;
-// 
-//             fit_line(lfps, sz, child->left, child->right, NULL, NULL, &child->err);
-// 
-//             zmaxheap_add(heap, &child, -child->err);
-//         }
-// 
-//         // create the join to the right
-//         if (1) {
-//             struct remove_vertex *child = &rvalloc[rvalloc_pos++];
-//             child->i = rv->right;
-//             child->left = rv->left;
-//             child->right = segs[rv->right].right;
-// 
-//             fit_line(lfps, sz, child->left, child->right, NULL, NULL, &child->err);
-// 
-//             zmaxheap_add(heap, &child, -child->err);
-//         }
-// 
-//         // we now have one less vertex
-//         nvertices--;
-//     }
-// 
-//     free(rvalloc);
-//     zmaxheap_destroy(heap);
-// 
-//     int idx = 0;
-//     for (int i = 0; i < sz; i++) {
-//         if (segs[i].is_vertex) {
-//             indices[idx++] = i;
-//         }
-//     }
-// 
-//     free(segs);
-// 
-//     return 1;
-// }
-
 // return 1 if the quad looks okay, 0 if it should be discarded
 int fit_quad(apriltag_detector_t *td, image_u8_t *im, zarray_t *cluster, struct quad *quad)
 {
@@ -900,9 +748,6 @@ int fit_quad(apriltag_detector_t *td, image_u8_t *im, zarray_t *cluster, struct 
     if (1) {
         if (!quad_segment_maxima(td, cluster, lfps, indices))
             goto finish;
-    } else {
-//         if (!quad_segment_agg(td, cluster, lfps, indices))
-//             goto finish;
     }
 
 //    printf("%d %d %d %d\n", indices[0], indices[1], indices[2], indices[3]);
@@ -1114,54 +959,6 @@ static void do_unionfind_line(unionfind_t *uf, image_u8_t *im, int h, int w, int
     }
 }
 #undef DO_UNIONFIND
-
-// static void do_unionfind_task(void *p)
-// {
-//     struct unionfind_task *task = (struct unionfind_task*) p;
-// 
-//     for (int y = task->y0; y < task->y1; y++) {
-//         do_unionfind_line(task->uf, task->im, task->h, task->w, task->s, y);
-//     }
-// }
-// 
-// static void do_quad_task(void *p)
-// {
-//     struct quad_task *task = (struct quad_task*) p;
-// 
-//     zarray_t *clusters = task->clusters;
-//     zarray_t *quads = task->quads;
-//     apriltag_detector_t *td = task->td;
-//     int w = task->w, h = task->h;
-// 
-//     for (int cidx = task->cidx0; cidx < task->cidx1; cidx++) {
-// 
-//         zarray_t *cluster;
-//         zarray_get(clusters, cidx, &cluster);
-// 
-//         if (zarray_size(cluster) < td->qtp.min_cluster_pixels)
-//             continue;
-// 
-//         // a cluster should contain only boundary points around the
-//         // tag. it cannot be bigger than the whole screen. (Reject
-//         // large connected blobs that will be prohibitively slow to
-//         // fit quads to.) A typical point along an edge is added three
-//         // times (because it has 3 neighbors). The maximum perimeter
-//         // is 2w+2h.
-//         if (zarray_size(cluster) > 3*(2*w+2*h)) {
-//             continue;
-//         }
-// 
-//         struct quad quad;
-//         memset(&quad, 0, sizeof(struct quad));
-// 
-//         if (fit_quad(td, task->im, cluster, &quad)) {
-//             pthread_mutex_lock(&td->mutex);
-// 
-//             zarray_add(quads, &quad);
-//             pthread_mutex_unlock(&td->mutex);
-//         }
-//     }
-// }
 
 image_u8_t *threshold(apriltag_detector_t *td, image_u8_t *im)
 {
@@ -1387,125 +1184,6 @@ image_u8_t *threshold(apriltag_detector_t *td, image_u8_t *im)
     return threshim;
 }
 
-// // basically the same as threshold(), but assumes the input image is a
-// // bayer image. It collects statistics separately for each 2x2 block
-// // of pixels. NOT WELL TESTED.
-// image_u8_t *threshold_bayer(apriltag_detector_t *td, image_u8_t *im)
-// {
-//     int w = im->width, h = im->height, s = im->stride;
-// 
-//     image_u8_t *threshim = image_u8_create_alignment(w, h, s);
-//     assert(threshim->stride == s);
-// 
-//     int tilesz = 32;
-//     assert((tilesz & 1) == 0); // must be multiple of 2
-// 
-//     int tw = w/tilesz + 1;
-//     int th = h/tilesz + 1;
-// 
-//     uint8_t *im_max[4], *im_min[4];
-//     for (int i = 0; i < 4; i++) {
-//         im_max[i] = calloc(tw*th, sizeof(uint8_t));
-//         im_min[i] = calloc(tw*th, sizeof(uint8_t));
-//     }
-// 
-//     for (int ty = 0; ty < th; ty++) {
-//         for (int tx = 0; tx < tw; tx++) {
-// 
-//             uint8_t max[4] = { 0, 0, 0, 0};
-//             uint8_t min[4] = { 255, 255, 255, 255 };
-// 
-//             for (int dy = 0; dy < tilesz; dy++) {
-//                 if (ty*tilesz+dy >= h)
-//                     continue;
-// 
-//                 for (int dx = 0; dx < tilesz; dx++) {
-//                     if (tx*tilesz+dx >= w)
-//                         continue;
-// 
-//                     // which bayer element is this pixel?
-//                     int idx = (2*(dy&1) + (dx&1));
-// 
-//                     uint8_t v = im->buf[(ty*tilesz+dy)*s + tx*tilesz + dx];
-//                     if (v < min[idx])
-//                         min[idx] = v;
-//                     if (v > max[idx])
-//                         max[idx] = v;
-//                 }
-//             }
-// 
-//             for (int i = 0; i < 4; i++) {
-//                 im_max[i][ty*tw+tx] = max[i];
-//                 im_min[i][ty*tw+tx] = min[i];
-//             }
-//         }
-//     }
-// 
-//     for (int ty = 0; ty < th; ty++) {
-//         for (int tx = 0; tx < tw; tx++) {
-// 
-//             uint8_t max[4] = { 0, 0, 0, 0};
-//             uint8_t min[4] = { 255, 255, 255, 255 };
-// 
-//             for (int dy = -1; dy <= 1; dy++) {
-//                 if (ty+dy < 0 || ty+dy >= th)
-//                     continue;
-//                 for (int dx = -1; dx <= 1; dx++) {
-//                     if (tx+dx < 0 || tx+dx >= tw)
-//                         continue;
-// 
-//                     for (int i = 0; i < 4; i++) {
-//                         uint8_t m = im_max[i][(ty+dy)*tw+tx+dx];
-//                         if (m > max[i])
-//                             max[i] = m;
-//                         m = im_min[i][(ty+dy)*tw+tx+dx];
-//                         if (m < min[i])
-//                             min[i] = m;
-//                     }
-//                 }
-//             }
-// 
-//             // XXX CONSTANT
-// //            if (max - min < 30)
-// //                continue;
-// 
-//             // argument for biasing towards dark: specular highlights
-//             // can be substantially brighter than white tag parts
-//             uint8_t thresh[4];
-//             for (int i = 0; i < 4; i++) {
-//                 thresh[i] = min[i] + (max[i] - min[i]) / 2;
-//             }
-// 
-//             for (int dy = 0; dy < tilesz; dy++) {
-//                 int y = ty*tilesz + dy;
-//                 if (y >= h)
-//                     continue;
-// 
-//                 for (int dx = 0; dx < tilesz; dx++) {
-//                     int x = tx*tilesz + dx;
-//                     if (x >= w)
-//                         continue;
-// 
-//                     // which bayer element is this pixel?
-//                     int idx = (2*(y&1) + (x&1));
-// 
-//                     uint8_t v = im->buf[y*s+x];
-//                     threshim->buf[y*s+x] = v > thresh[idx];
-//                 }
-//             }
-//         }
-//     }
-// 
-//     for (int i = 0; i < 4; i++) {
-//         free(im_min[i]);
-//         free(im_max[i]);
-//     }
-// 
-// //     timeprofile_stamp(td->tp, "threshold");
-// 
-//     return threshim;
-// }
-
 zarray_t *apriltag_quad_thresh(apriltag_detector_t *td, image_u8_t *im)
 {
     ////////////////////////////////////////////////////////
@@ -1516,52 +1194,14 @@ zarray_t *apriltag_quad_thresh(apriltag_detector_t *td, image_u8_t *im)
     image_u8_t *threshim = threshold(td, im);
     int ts = threshim->stride;
 
-//     if (td->debug)
-//         image_u8_write_pnm(threshim, "debug_threshold.pnm");
-
     ////////////////////////////////////////////////////////
     // step 2. find connected components.
 
     unionfind_t *uf = unionfind_create(w * h);
 
-//     if (td->nthreads <= 1) {
-        for (int y = 0; y < h - 1; y++) {
-            do_unionfind_line(uf, threshim, h, w, ts, y);
-        }
-//     } else {
-//         int sz = h - 1;
-//         int chunksize = 1 + sz / (APRILTAG_TASKS_PER_THREAD_TARGET * td->nthreads);
-//         struct unionfind_task tasks[sz / chunksize + 1];
-// 
-//         int ntasks = 0;
-// 
-//         for (int i = 0; i < sz; i += chunksize) {
-//             // each task will process [y0, y1). Note that this attaches
-//             // each cell to the right and down, so row y1 *is* potentially modified.
-//             //
-//             // for parallelization, make sure that each task doesn't touch rows
-//             // used by another thread.
-//             tasks[ntasks].y0 = i;
-//             tasks[ntasks].y1 = imin(sz, i + chunksize - 1);
-//             tasks[ntasks].h = h;
-//             tasks[ntasks].w = w;
-//             tasks[ntasks].s = ts;
-//             tasks[ntasks].uf = uf;
-//             tasks[ntasks].im = threshim;
-// 
-//             workerpool_add_task(td->wp, do_unionfind_task, &tasks[ntasks]);
-//             ntasks++;
-//         }
-// 
-//         workerpool_run(td->wp);
-// 
-//         // XXX stitch together the different chunks.
-//         for (int i = 0; i + 1 < ntasks; i++) {
-//             do_unionfind_line(uf, threshim, h, w, ts, tasks[i].y1);
-//         }
-//     }
-
-//     timeprofile_stamp(td->tp, "unionfind");
+    for (int y = 0; y < h - 1; y++) {
+        do_unionfind_line(uf, threshim, h, w, ts, y);
+    }
 
     // XXX sizing??
     int nclustermap = 2*w*h - 1;
@@ -1643,46 +1283,6 @@ zarray_t *apriltag_quad_thresh(apriltag_detector_t *td, image_u8_t *im)
 
     image_u8_destroy(threshim);
 
-//     // make segmentation image.
-//     if (td->debug) {
-//         image_u8x3_t *d = image_u8x3_create(w, h);
-// 
-//         uint32_t *colors = (uint32_t*) calloc(w*h, sizeof(*colors));
-// 
-//         for (int y = 0; y < h; y++) {
-//             for (int x = 0; x < w; x++) {
-//                 uint32_t v = unionfind_get_representative(uf, y*w+x);
-// 
-//                 if (unionfind_get_set_size(uf, v) < td->qtp.min_cluster_pixels)
-//                     continue;
-// 
-//                 uint32_t color = colors[v];
-//                 uint8_t r = color >> 16,
-//                     g = color >> 8,
-//                     b = color;
-// 
-//                 if (color == 0) {
-//                     const int bias = 50;
-//                     r = bias + (random() % (200-bias));
-//                     g = bias + (random() % (200-bias));
-//                     b = bias + (random() % (200-bias));
-//                     colors[v] = (r << 16) | (g << 8) | b;
-//                 }
-// 
-//                 d->buf[y*d->stride + 3*x + 0] = r;
-//                 d->buf[y*d->stride + 3*x + 1] = g;
-//                 d->buf[y*d->stride + 3*x + 2] = b;
-//             }
-//         }
-// 
-//         free(colors);
-// 
-//         image_u8x3_write_pnm(d, "debug_segmentation.pnm");
-//         image_u8x3_destroy(d);
-//     }
-
-//     timeprofile_stamp(td->tp, "make clusters");
-
     ////////////////////////////////////////////////////////
     // step 3. process each connected component.
     zarray_t *clusters = zarray_create(sizeof(zarray_t*)); //, uint64_zarray_hash_size(clustermap));
@@ -1695,39 +1295,6 @@ zarray_t *apriltag_quad_thresh(apriltag_detector_t *td, image_u8_t *im)
             }
         }
     }
-
-
-//     if (td->debug) {
-//         image_u8x3_t *d = image_u8x3_create(w, h);
-// 
-//         for (int i = 0; i < zarray_size(clusters); i++) {
-//             zarray_t *cluster;
-//             zarray_get(clusters, i, &cluster);
-// 
-//             uint32_t r, g, b;
-// 
-//             if (1) {
-//                 const int bias = 50;
-//                 r = bias + (random() % (200-bias));
-//                 g = bias + (random() % (200-bias));
-//                 b = bias + (random() % (200-bias));
-//             }
-// 
-//             for (int j = 0; j < zarray_size(cluster); j++) {
-//                 struct pt *p;
-//                 zarray_get_volatile(cluster, j, &p);
-// 
-//                 int x = p->x / 2;
-//                 int y = p->y / 2;
-//                 d->buf[y*d->stride + 3*x + 0] = r;
-//                 d->buf[y*d->stride + 3*x + 1] = g;
-//                 d->buf[y*d->stride + 3*x + 2] = b;
-//             }
-//         }
-// 
-//         image_u8x3_write_pnm(d, "debug_clusters.pnm");
-//         image_u8x3_destroy(d);
-//     }
 
     if (1) {
       for (int i = 0; i < nclustermap; i++) {
@@ -1744,25 +1311,6 @@ zarray_t *apriltag_quad_thresh(apriltag_detector_t *td, image_u8_t *im)
     zarray_t *quads = zarray_create(sizeof(struct quad));
 
     int sz = zarray_size(clusters);
-//     int chunksize = 1 + sz / (APRILTAG_TASKS_PER_THREAD_TARGET * td->nthreads);
-//     struct quad_task tasks[sz / chunksize + 1];
-// 
-//     int ntasks = 0;
-//     for (int i = 0; i < sz; i += chunksize) {
-//         tasks[ntasks].td = td;
-//         tasks[ntasks].cidx0 = i;
-//         tasks[ntasks].cidx1 = imin(sz, i + chunksize);
-//         tasks[ntasks].h = h;
-//         tasks[ntasks].w = w;
-//         tasks[ntasks].quads = quads;
-//         tasks[ntasks].clusters = clusters;
-//         tasks[ntasks].im = im;
-// 
-//         workerpool_add_task(td->wp, do_quad_task, &tasks[ntasks]);
-//         ntasks++;
-//     }
-// 
-//     workerpool_run(td->wp);
     
     if (quads) {
         for (int i = 0; i < sz; i ++) {
@@ -1791,46 +1339,6 @@ zarray_t *apriltag_quad_thresh(apriltag_detector_t *td, image_u8_t *im)
             }
         }
     }
-
-//     timeprofile_stamp(td->tp, "fit quads to clusters");
-
-//     if (td->debug) {
-//         FILE *f = fopen("debug_lines.ps", "w");
-//         fprintf(f, "%%!PS\n\n");
-// 
-//         image_u8_t *im2 = image_u8_copy(im);
-//         image_u8_darken(im2);
-//         image_u8_darken(im2);
-// 
-//         // assume letter, which is 612x792 points.
-//         double scale = fmin(612.0/im->width, 792.0/im2->height);
-//         fprintf(f, "%.15f %.15f scale\n", scale, scale);
-//         fprintf(f, "0 %d translate\n", im2->height);
-//         fprintf(f, "1 -1 scale\n");
-// 
-// //         postscript_image(f, im);
-// 
-//         for (int i = 0; i < zarray_size(quads); i++) {
-//             struct quad *q;
-//             zarray_get_volatile(quads, i, &q);
-// 
-//             float rgb[3];
-//             int bias = 100;
-// 
-//             for (int i = 0; i < 3; i++)
-//                 rgb[i] = bias + (random() % (255-bias));
-// 
-//             fprintf(f, "%f %f %f setrgbcolor\n", rgb[0]/255.0f, rgb[1]/255.0f, rgb[2]/255.0f);
-//             fprintf(f, "%.15f %.15f moveto %.15f %.15f lineto %.15f %.15f lineto %.15f %.15f lineto %.15f %.15f lineto stroke\n",
-//                     q->p[0][0], q->p[0][1],
-//                     q->p[1][0], q->p[1][1],
-//                     q->p[2][0], q->p[2][1],
-//                     q->p[3][0], q->p[3][1],
-//                     q->p[0][0], q->p[0][1]);
-//         }
-// 
-//         fclose(f);
-//     }
 
     //        printf("  %d %d %d %d\n", indices[0], indices[1], indices[2], indices[3]);
 
