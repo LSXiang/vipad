@@ -88,12 +88,12 @@ int main(int argc, char *argv[])
 //     td->refine_decode = getopt_get_bool(getopt, "refine-decode");
 //     td->refine_pose = getopt_get_bool(getopt, "refine-pose");
     td->quad_decimate = 1.0f;
-    td->quad_sigma = 0.0f;
+    td->quad_sigma = 0.8f;
 //     td->nthreads = 4;
 //     td->debug = 0;
     td->refine_edges = 1;
-    td->refine_decode = 0;
-    td->refine_pose = 0;
+//     td->refine_decode = 0;
+//     td->refine_pose = 0;
     
     
 
@@ -309,15 +309,13 @@ void getRelativeTransform2(double tag_size, double fx, double fy, double cx, dou
     float reprojErr;
     
     ippe::solvePoseOfMarker(tag_size, imagePoints, cameraMatrix, distParam, R, t, reprojErr);
-    matd_t *R_t = matd_transpose(R);
-    matd_t *tinv = matd_multiply(R_t, t);
-        
-    cout << "x y z ^^^^ : " << -MATD_EL(tinv, 0, 0) <<  ",\t" << -MATD_EL(tinv, 1, 0) << ",\t" << -MATD_EL(tinv, 2, 0) << endl;
+    
+    matd_t *tinv = matd_op("-M'*M", R, t);
+    cout << "x y z ^^^^ : " << MATD_EL(tinv, 0, 0) <<  ",\t" << MATD_EL(tinv, 1, 0) << ",\t" << MATD_EL(tinv, 2, 0) << endl;
     
     matd_destroy(imagePoints);
     matd_destroy(cameraMatrix);
     matd_destroy(distParam);
-    matd_destroy(R_t);
     matd_destroy(tinv);
 }
 

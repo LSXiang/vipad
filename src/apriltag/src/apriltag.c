@@ -154,7 +154,7 @@ void quad_destroy(struct quad *quad)
         return;
 
     matd_destroy(quad->H);
-    matd_destroy(quad->Hinv);
+//     matd_destroy(quad->Hinv);
     free(quad);
 }
 
@@ -164,8 +164,8 @@ struct quad *quad_copy(struct quad *quad)
     memcpy(q, quad, sizeof(struct quad));
     if (quad->H)
         q->H = matd_copy(quad->H);
-    if (quad->Hinv)
-        q->Hinv = matd_copy(quad->Hinv);
+//     if (quad->Hinv)
+//         q->Hinv = matd_copy(quad->Hinv);
     return q;
 }
 
@@ -368,8 +368,8 @@ apriltag_detector_t *apriltag_detector_create()
 //     td->tp = timeprofile_create();
 
     td->refine_edges = 1;
-    td->refine_pose = 0;
-    td->refine_decode = 0;
+//     td->refine_pose = 0;
+//     td->refine_decode = 0;
 
 //     td->debug = 0;
 
@@ -402,15 +402,15 @@ void apriltag_detector_destroy(apriltag_detector_t *td)
 //     image_u8_t *im_samples;
 // };
 
-struct evaluate_quad_ret
-{
-    int64_t rcode;
-    double  score;
-    matd_t  *H, *Hinv;
-
-    int decode_status;
-    struct quick_decode_entry e;
-};
+// struct evaluate_quad_ret
+// {
+//     int64_t rcode;
+//     double  score;
+//     matd_t  *H, *Hinv;
+// 
+//     int decode_status;
+//     struct quick_decode_entry e;
+// };
 
 // returns non-zero if an error occurs (i.e., H has no inverse)
 int quad_update_homographies(struct quad *quad)
@@ -436,132 +436,132 @@ int quad_update_homographies(struct quad *quad)
 
     if (quad->H)
         matd_destroy(quad->H);
-    if (quad->Hinv)
-        matd_destroy(quad->Hinv);
+//     if (quad->Hinv)
+//         matd_destroy(quad->Hinv);
 
     // XXX Tunable
     quad->H = homography_compute(correspondences, HOMOGRAPHY_COMPUTE_FLAG_SVD);
-    quad->Hinv = matd_inverse(quad->H);
+//     quad->Hinv = matd_inverse(quad->H);
     zarray_destroy(correspondences);
-
-    if (quad->H && quad->Hinv)
+    
+    if (quad->H) // && quad->Hinv)
         return 0;
 
     return -1;
 }
 
-// compute a "score" for a quad that is independent of tag family
-// encoding (but dependent upon the tag geometry) by considering the
-// contrast around the exterior of the tag.
-double quad_goodness(apriltag_family_t *family, image_u8_t *im, struct quad *quad)
-{
-    // when sampling from the white border, how much white border do
-    // we actually consider valid, measured in bit-cell units? (the
-    // outside portions are often intruded upon, so it could be advantageous to use
-    // less than the "nominal" 1.0. (Less than 1.0 not well tested.)
-
-    // XXX Tunable
-    float white_border = 1;
-
-    // in tag coordinates, how big is each bit cell?
-    double bit_size = 2.0 / (2*family->black_border + family->d);
-//    double inv_bit_size = 1.0 / bit_size;
-
-    int32_t xmin = INT32_MAX, xmax = 0, ymin = INT32_MAX, ymax = 0;
-
-    for (int i = 0; i < 4; i++) {
-        double tx = (i == 0 || i == 3) ? -1 - bit_size : 1 + bit_size;
-        double ty = (i == 0 || i == 1) ? -1 - bit_size : 1 + bit_size;
-        double x, y;
-
-        homography_project(quad->H, tx, ty, &x, &y);
-        xmin = imin(xmin, x);
-        xmax = imax(xmax, x);
-        ymin = imin(ymin, y);
-        ymax = imax(ymax, y);
-    }
-
-    // clamp bounding box to image dimensions
-    xmin = imax(0, xmin);
-    xmax = imin(im->width-1, xmax);
-    ymin = imax(0, ymin);
-    ymax = imin(im->height-1, ymax);
-
-//    int nbits = family->d * family->d;
-
-    int64_t W1 = 0, B1 = 0, Wn = 0, Bn = 0;
-
-    float wsz = bit_size*white_border;
-    float bsz = bit_size*family->black_border;
-
-    matd_t *Hinv = quad->Hinv;
-//    matd_t *H = quad->H;
-
-    // iterate over all the pixels in the tag. (Iterating in pixel space)
-    for (int y = ymin; y <= ymax; y++) {
-
-        // we'll incrementally compute the homography
-        // projections. Begin by evaluating the homogeneous position
-        // [(xmin - .5f), y, 1]. Then, we'll update as we stride in
-        // the +x direction.
-        double Hx = MATD_EL(Hinv, 0, 0) * (.5 + (int) xmin) +
-            MATD_EL(Hinv, 0, 1) * (y + .5) + MATD_EL(Hinv, 0, 2);
-        double Hy = MATD_EL(Hinv, 1, 0) * (.5 + (int) xmin) +
-            MATD_EL(Hinv, 1, 1) * (y + .5) + MATD_EL(Hinv, 1, 2);
-        double Hh = MATD_EL(Hinv, 2, 0) * (.5 + (int) xmin) +
-            MATD_EL(Hinv, 2, 1) * (y + .5) + MATD_EL(Hinv, 2, 2);
-
-        for (int x = xmin; x <= xmax;  x++) {
-            // project the pixel center.
-            double tx, ty;
-
-            // divide by homogeneous coordinate
-            tx = Hx / Hh;
-            ty = Hy / Hh;
-
-            // if we move x one pixel to the right, here's what
-            // happens to our three pre-normalized coordinates.
-            Hx += MATD_EL(Hinv, 0, 0);
-            Hy += MATD_EL(Hinv, 1, 0);
-            Hh += MATD_EL(Hinv, 2, 0);
-
-            float txa = fabsf((float) tx), tya = fabsf((float) ty);
-            float xymax = fmaxf(txa, tya);
-
-//            if (txa >= 1 + wsz || tya >= 1 + wsz)
-            if (xymax >= 1 + wsz)
-                continue;
-
-            uint8_t v = im->buf[y*im->stride + x];
-
-            // it's within the white border?
-//            if (txa >= 1 || tya >= 1) {
-            if (xymax >= 1) {
-                W1 += v;
-                Wn ++;
-                continue;
-            }
-
-            // it's within the black border?
-//            if (txa >= 1 - bsz || tya >= 1 - bsz) {
-            if (xymax >= 1 - bsz) {
-                B1 += v;
-                Bn ++;
-                continue;
-            }
-
-            // it must be a data bit. We don't do anything with these.
-            continue;
-        }
-    }
-
-
-    // score = average margin between white and black pixels near border.
-    double margin = 1.0 * W1 / Wn - 1.0 * B1 / Bn;
-//    printf("margin %f: W1 %f, B1 %f\n", margin, W1, B1);
-
-    return margin;
-}
+// // compute a "score" for a quad that is independent of tag family
+// // encoding (but dependent upon the tag geometry) by considering the
+// // contrast around the exterior of the tag.
+// double quad_goodness(apriltag_family_t *family, image_u8_t *im, struct quad *quad)
+// {
+//     // when sampling from the white border, how much white border do
+//     // we actually consider valid, measured in bit-cell units? (the
+//     // outside portions are often intruded upon, so it could be advantageous to use
+//     // less than the "nominal" 1.0. (Less than 1.0 not well tested.)
+// 
+//     // XXX Tunable
+//     float white_border = 1;
+// 
+//     // in tag coordinates, how big is each bit cell?
+//     double bit_size = 2.0 / (2*family->black_border + family->d);
+// //    double inv_bit_size = 1.0 / bit_size;
+// 
+//     int32_t xmin = INT32_MAX, xmax = 0, ymin = INT32_MAX, ymax = 0;
+// 
+//     for (int i = 0; i < 4; i++) {
+//         double tx = (i == 0 || i == 3) ? -1 - bit_size : 1 + bit_size;
+//         double ty = (i == 0 || i == 1) ? -1 - bit_size : 1 + bit_size;
+//         double x, y;
+// 
+//         homography_project(quad->H, tx, ty, &x, &y);
+//         xmin = imin(xmin, x);
+//         xmax = imax(xmax, x);
+//         ymin = imin(ymin, y);
+//         ymax = imax(ymax, y);
+//     }
+// 
+//     // clamp bounding box to image dimensions
+//     xmin = imax(0, xmin);
+//     xmax = imin(im->width-1, xmax);
+//     ymin = imax(0, ymin);
+//     ymax = imin(im->height-1, ymax);
+// 
+// //    int nbits = family->d * family->d;
+// 
+//     int64_t W1 = 0, B1 = 0, Wn = 0, Bn = 0;
+// 
+//     float wsz = bit_size*white_border;
+//     float bsz = bit_size*family->black_border;
+// 
+//     matd_t *Hinv = quad->Hinv;
+// //    matd_t *H = quad->H;
+// 
+//     // iterate over all the pixels in the tag. (Iterating in pixel space)
+//     for (int y = ymin; y <= ymax; y++) {
+// 
+//         // we'll incrementally compute the homography
+//         // projections. Begin by evaluating the homogeneous position
+//         // [(xmin - .5f), y, 1]. Then, we'll update as we stride in
+//         // the +x direction.
+//         double Hx = MATD_EL(Hinv, 0, 0) * (.5 + (int) xmin) +
+//             MATD_EL(Hinv, 0, 1) * (y + .5) + MATD_EL(Hinv, 0, 2);
+//         double Hy = MATD_EL(Hinv, 1, 0) * (.5 + (int) xmin) +
+//             MATD_EL(Hinv, 1, 1) * (y + .5) + MATD_EL(Hinv, 1, 2);
+//         double Hh = MATD_EL(Hinv, 2, 0) * (.5 + (int) xmin) +
+//             MATD_EL(Hinv, 2, 1) * (y + .5) + MATD_EL(Hinv, 2, 2);
+// 
+//         for (int x = xmin; x <= xmax;  x++) {
+//             // project the pixel center.
+//             double tx, ty;
+// 
+//             // divide by homogeneous coordinate
+//             tx = Hx / Hh;
+//             ty = Hy / Hh;
+// 
+//             // if we move x one pixel to the right, here's what
+//             // happens to our three pre-normalized coordinates.
+//             Hx += MATD_EL(Hinv, 0, 0);
+//             Hy += MATD_EL(Hinv, 1, 0);
+//             Hh += MATD_EL(Hinv, 2, 0);
+// 
+//             float txa = fabsf((float) tx), tya = fabsf((float) ty);
+//             float xymax = fmaxf(txa, tya);
+// 
+// //            if (txa >= 1 + wsz || tya >= 1 + wsz)
+//             if (xymax >= 1 + wsz)
+//                 continue;
+// 
+//             uint8_t v = im->buf[y*im->stride + x];
+// 
+//             // it's within the white border?
+// //            if (txa >= 1 || tya >= 1) {
+//             if (xymax >= 1) {
+//                 W1 += v;
+//                 Wn ++;
+//                 continue;
+//             }
+// 
+//             // it's within the black border?
+// //            if (txa >= 1 - bsz || tya >= 1 - bsz) {
+//             if (xymax >= 1 - bsz) {
+//                 B1 += v;
+//                 Bn ++;
+//                 continue;
+//             }
+// 
+//             // it must be a data bit. We don't do anything with these.
+//             continue;
+//         }
+//     }
+// 
+// 
+//     // score = average margin between white and black pixels near border.
+//     double margin = 1.0 * W1 / Wn - 1.0 * B1 / Bn;
+// //    printf("margin %f: W1 %f, B1 %f\n", margin, W1, B1);
+// 
+//     return margin;
+// }
 
 // returns the decision margin. Return < 0 if the detection should be rejected.
 float quad_decode(apriltag_family_t *family, image_u8_t *im, struct quad *quad, struct quick_decode_entry *entry, image_u8_t *im_samples)
@@ -722,10 +722,10 @@ float quad_decode(apriltag_family_t *family, image_u8_t *im, struct quad *quad, 
     return fmin(white_score / white_score_count, black_score / black_score_count);
 }
 
-double score_goodness(apriltag_family_t *family, image_u8_t *im, struct quad *quad, void *user)
-{
-    return quad_goodness(family, im, quad);
-}
+// double score_goodness(apriltag_family_t *family, image_u8_t *im, struct quad *quad, void *user)
+// {
+//     return quad_goodness(family, im, quad);
+// }
 
 double score_decodability(apriltag_family_t *family, image_u8_t *im, struct quad *quad, void *user)
 {
@@ -807,7 +807,7 @@ double optimize_quad_generic(apriltag_family_t *family, image_u8_t *im, struct q
     }
 
     matd_destroy(quad0->H);
-    matd_destroy(quad0->Hinv);
+//     matd_destroy(quad0->Hinv);
     memcpy(quad0, best_quad, sizeof(struct quad)); // copy pointers
     free(best_quad);
     return best_score;
@@ -1263,37 +1263,37 @@ zarray_t *apriltag_detector_detect(apriltag_detector_t *td, image_u8_t *im_orig)
                 apriltag_family_t *family;
                 zarray_get(td->tag_families, famidx, &family);
                 
-                double goodness = 0;
+//                 double goodness = 0;
                 
                 // since the geometry of tag families can vary, start any
                 // optimization process over with the original quad.
                 struct quad *quad = quad_copy(quad_original);
                 
-                // improve the quad corner positions by minimizing the
-                // variance within each intra-bit area.
-                if (td->refine_pose) {
-                    // NB: We potentially step an integer
-                    // number of times in each direction. To make each
-                    // sample as useful as possible, the step sizes should
-                    // not be integer multiples of each other. (I.e.,
-                    // probably don't use 1, 0.5, 0.25, etc.)
-
-                    // XXX Tunable
-                    float stepsizes[] = { 1, .4, .16, .064 };
-                    int nstepsizes = sizeof(stepsizes)/sizeof(float);
-
-                    goodness = optimize_quad_generic(family, im_orig, quad, stepsizes, nstepsizes, score_goodness, NULL);
-                }
+//                 // improve the quad corner positions by minimizing the
+//                 // variance within each intra-bit area.
+//                 if (td->refine_pose) {
+//                     // NB: We potentially step an integer
+//                     // number of times in each direction. To make each
+//                     // sample as useful as possible, the step sizes should
+//                     // not be integer multiples of each other. (I.e.,
+//                     // probably don't use 1, 0.5, 0.25, etc.)
+// 
+//                     // XXX Tunable
+//                     float stepsizes[] = { 1, .4, .16, .064 };
+//                     int nstepsizes = sizeof(stepsizes)/sizeof(float);
+// 
+//                     goodness = optimize_quad_generic(family, im_orig, quad, stepsizes, nstepsizes, score_goodness, NULL);
+//                 }
                 
-                if (td->refine_decode) {
-                    // this optimizes decodability, but we don't report
-                    // that value to the user.  (so discard return value.)
-                    // XXX Tunable
-                    float stepsizes[] = { .4 };
-                    int nstepsizes = sizeof(stepsizes)/sizeof(float);
-
-                    optimize_quad_generic(family, im_orig, quad, stepsizes, nstepsizes, score_decodability, NULL);
-                }
+//                 if (td->refine_decode) {
+//                     // this optimizes decodability, but we don't report
+//                     // that value to the user.  (so discard return value.)
+//                     // XXX Tunable
+//                     float stepsizes[] = { .4 };
+//                     int nstepsizes = sizeof(stepsizes)/sizeof(float);
+// 
+//                     optimize_quad_generic(family, im_orig, quad, stepsizes, nstepsizes, score_decodability, NULL);
+//                 }
                 
                 struct quick_decode_entry entry;
                 
@@ -1305,7 +1305,7 @@ zarray_t *apriltag_detector_detect(apriltag_detector_t *td, image_u8_t *im_orig)
                     det->family = family;
                     det->id = entry.id;
                     det->hamming = entry.hamming;
-                    det->goodness = goodness;
+//                     det->goodness = goodness;
                     det->decision_margin = decision_margin;
                     
                     double theta = -entry.rotation * M_PI / 2.0;
@@ -1413,7 +1413,7 @@ zarray_t *apriltag_detector_detect(apriltag_detector_t *td, image_u8_t *im_orig)
                     int pref = 0; // 0 means undecided which one we'll keep.
                     pref = prefer_smaller(pref, det0->hamming, det1->hamming);     // want small hamming
                     pref = prefer_smaller(pref, -det0->decision_margin, -det1->decision_margin);      // want bigger margins
-                    pref = prefer_smaller(pref, -det0->goodness, -det1->goodness); // want bigger goodness
+//                     pref = prefer_smaller(pref, -det0->goodness, -det1->goodness); // want bigger goodness
 
                     // if we STILL don't prefer one detection over the other, then pick
                     // any deterministic criterion.
@@ -1582,7 +1582,7 @@ zarray_t *apriltag_detector_detect(apriltag_detector_t *td, image_u8_t *im_orig)
         struct quad *quad;
         zarray_get_volatile(quads, i, &quad);
         matd_destroy(quad->H);
-        matd_destroy(quad->Hinv);
+//         matd_destroy(quad->Hinv);
     }
 
     zarray_destroy(quads);

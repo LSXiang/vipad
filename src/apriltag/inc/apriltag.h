@@ -53,8 +53,7 @@ struct quad
     float p[4][2]; // corners
 
     // H: tag coordinates ([-1,1] at the black corners) to pixels
-    // Hinv: pixels to tag
-    matd_t *H, *Hinv;
+    matd_t *H;
 };
 
 // Represents a tag family. Every tag belongs to a tag family. Tag
@@ -153,22 +152,22 @@ struct apriltag_detector
     // quad_decimate = 1.
     int refine_edges;
 
-    // when non-zero, detections are refined in a way intended to
-    // increase the number of detected tags. Especially effective for
-    // very small tags near the resolution threshold (e.g. 10px on a
-    // side).
-    int refine_decode;
+//     // when non-zero, detections are refined in a way intended to
+//     // increase the number of detected tags. Especially effective for
+//     // very small tags near the resolution threshold (e.g. 10px on a
+//     // side).
+//     int refine_decode;
 
-    // when non-zero, detections are refined in a way intended to
-    // increase the accuracy of the extracted pose. This is done by
-    // maximizing the contrast around the black and white border of
-    // the tag. This generally increases the number of successfully
-    // detected tags, though not as effectively (or quickly) as
-    // refine_decode.
-    //
-    // This option must be enabled in order for "goodness" to be
-    // computed.
-    int refine_pose;
+//     // when non-zero, detections are refined in a way intended to
+//     // increase the accuracy of the extracted pose. This is done by
+//     // maximizing the contrast around the black and white border of
+//     // the tag. This generally increases the number of successfully
+//     // detected tags, though not as effectively (or quickly) as
+//     // refine_decode.
+//     //
+//     // This option must be enabled in order for "goodness" to be
+//     // computed.
+//     int refine_pose;
 
 //     // When non-zero, write a variety of debugging images to the
 //     // current working directory at various stages through the
@@ -217,10 +216,10 @@ struct apriltag_detection
     // a hamming distance greater than 2.
     int hamming;
 
-    // A measure of the quality of tag localization: measures the
-    // average contrast of the pixels around the border of the
-    // tag. refine_pose must be enabled, or this field will be zero.
-    float goodness;
+//     // A measure of the quality of tag localization: measures the
+//     // average contrast of the pixels around the border of the
+//     // tag. refine_pose must be enabled, or this field will be zero.
+//     float goodness;
 
     // A measure of the quality of the binary decoding process: the
     // average difference between the intensity of a data bit versus
