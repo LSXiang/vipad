@@ -91,10 +91,6 @@ image_u8_t *image_u8_decimate(image_u8_t *im, float factor);
 
 void image_u8_destroy(image_u8_t *im);
 
-// Write a pnm. Returns 0 on success
-// Currently only supports GRAY and RGBA. Does not write out alpha for RGBA
-int image_u8_write_pnm(const image_u8_t *im, const char *path);
-
 // rotate the image by 'rad' radians. (Rotated in the "intuitive
 // sense", i.e., if Y were up. When input values are unavailable, the
 // value 'pad' is inserted instead. The geometric center of the output

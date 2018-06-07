@@ -8,6 +8,5 @@
 # Copyright (c) 2018, The Akatsuki. All rights reserved.
 #
 
-add_subdirectory(common)
 add_subdirectory(apriltag)
 add_subdirectory(ippe)

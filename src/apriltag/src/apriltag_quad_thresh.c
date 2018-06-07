@@ -40,9 +40,9 @@ either expressed or implied, of the Regents of The University of Michigan.
 #include <stdint.h>
 
 #include "apriltag.h"
-#include "common/zarray.h"
-#include "common/unionfind.h"
-#include "common/math_util.h"
+#include "zarray.h"
+#include "unionfind.h"
+#include "math_util.h"
 
 static inline uint32_t u64hash_2(uint64_t x) {
     return (2654435761 * x) >> 32;

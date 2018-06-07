@@ -19,4 +19,5 @@ You can go [here](https://github.com/tobycollins/IPPE) for a more detailed.
 
 ## Brief Introduction
 
-The sources is implemented in C++ with no external dependencies, you only include the common directory.
+The sources is implemented in C++ with no external dependencies, you only used some functions and struct 
+in the apriltag directory matd file.

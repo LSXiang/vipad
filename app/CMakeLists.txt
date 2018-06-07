@@ -14,7 +14,6 @@ add_executable(locationEstimation main.cpp)
 target_link_libraries(locationEstimation 
     ${OpenCV_LIBS}
     AprilTag_lib
-    common_lib
     ippe_lib
     pthread
     )

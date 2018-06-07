@@ -7,17 +7,7 @@
 
 #include "apriltag.h"
 
-// #include "tag36h11.h"
-// #include "tag36h10.h"
-// #include "tag36artoolkit.h"
-// #include "tag25h9.h"
-// #include "tag25h7.h"
-
 #include "tag_family.h"
-
-// #include "common/getopt.h"
-
-#include "common/homography.h"
 
 #include "ippe/ippe.h"
 
