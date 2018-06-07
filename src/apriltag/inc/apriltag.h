@@ -238,10 +238,6 @@ void apriltag_detection_destroy(apriltag_detection_t *det);
 // destroys the array AND the detections within it.
 void apriltag_detections_destroy(zarray_t *detections);
 
-// Renders the apriltag with with 1px white border.
-// Caller is responsible for calling image_u8_destroy on the image
-image_u8_t *apriltag_to_image(apriltag_family_t *fam, int idx);
-
 #ifdef __cplusplus
 }
 #endif

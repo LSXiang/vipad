@@ -359,9 +359,6 @@ apriltag_detector_t *apriltag_detector_create()
 
 void apriltag_detector_destroy(apriltag_detector_t *td)
 {
-//     timeprofile_destroy(td->tp);
-//     workerpool_destroy(td->wp);
-
     apriltag_detector_clear_families(td);
 
     zarray_destroy(td->tag_families);
@@ -570,81 +567,6 @@ double score_decodability(apriltag_family_t *family, image_u8_t *im, struct quad
 
     // hamming trumps decision margin; maximum value for decision_margin is 255.
     return decision_margin - entry.hamming*1000;
-}
-
-// returns score of best quad
-double optimize_quad_generic(apriltag_family_t *family, image_u8_t *im, struct quad *quad0,
-                             float *stepsizes, int nstepsizes,
-                             double (*score)(apriltag_family_t *family, image_u8_t *im, struct quad *quad, void *user),
-                             void *user)
-{
-    struct quad *best_quad = quad_copy(quad0);
-    double best_score = score(family, im, best_quad, user);
-
-    for (int stepsize_idx = 0; stepsize_idx < nstepsizes; stepsize_idx++)  {
-
-        int improved = 1;
-
-        // when we make progress with a particular step size, how many
-        // times will we try to perform that same step size again?
-        // (max_repeat = 0 means ("don't repeat--- just move to the
-        // next step size").
-        // XXX Tunable
-        int max_repeat = 1;
-
-        for (int repeat = 0; repeat <= max_repeat && improved; repeat++) {
-
-            improved = 0;
-
-            // wiggle point i
-            for (int i = 0; i < 4; i++) {
-
-                float stepsize = stepsizes[stepsize_idx];
-
-                // XXX Tunable (really 1 makes the best sense since)
-                int nsteps = 1;
-
-                struct quad *this_best_quad = NULL;
-                double this_best_score = best_score;
-
-                for (int sx = -nsteps; sx <= nsteps; sx++) {
-                    for (int sy = -nsteps; sy <= nsteps; sy++) {
-                        if (sx==0 && sy==0)
-                            continue;
-
-                        struct quad *this_quad = quad_copy(best_quad);
-                        this_quad->p[i][0] = best_quad->p[i][0] + sx*stepsize;
-                        this_quad->p[i][1] = best_quad->p[i][1] + sy*stepsize;
-                        if (quad_update_homographies(this_quad))
-                            continue;
-
-                        double this_score = score(family, im, this_quad, user);
-
-                        if (this_score > this_best_score) {
-                            quad_destroy(this_best_quad);
-
-                            this_best_quad = this_quad;
-                            this_best_score = this_score;
-                        } else {
-                            quad_destroy(this_quad);
-                        }
-                    }
-                }
-
-                if (this_best_score > best_score) {
-                    quad_destroy(best_quad);
-                    best_quad = this_best_quad;
-                    best_score = this_best_score;
-                    improved = 1;
-                }
-            }
-        }
-    }
-
-    matd_destroy(quad0->H);
-    memcpy(quad0, best_quad, sizeof(struct quad)); // copy pointers
-    free(best_quad);
-    return best_score;
 }
 
 static void refine_edges(apriltag_detector_t *td, image_u8_t *im_orig, struct quad *quad)
@@ -1073,35 +995,4 @@ void apriltag_detections_destroy(zarray_t *detections)
     }
 
     zarray_destroy(detections);
-}
-
-image_u8_t *apriltag_to_image(apriltag_family_t *fam, int idx)
-{
-    assert(fam != NULL);
-    assert(idx >= 0 && idx < fam->ncodes);
-
-    uint64_t code = fam->codes[idx];
-    int border = fam->black_border + 1;
-    int dim = fam->d + 2*border;
-    image_u8_t *im = image_u8_create(dim, dim);
-
-    // Make 1px white border
-    for (int i = 0; i < dim; i += 1) {
-        im->buf[i] = 255;
-        im->buf[(dim-1)*im->stride + i] = 255;
-        im->buf[i*im->stride] = 255;
-        im->buf[i*im->stride + (dim-1)] = 255;
-    }
-
-    for (int y = 0; y < fam->d; y += 1) {
-        for (int x = 0; x < fam->d; x += 1) {
-            int pos = (fam->d-1 - y) * fam->d + (fam->d-1 - x);
-            if ((code >> pos) & 0x1) {
-                int i = (y+border)*im->stride + x+border;
-                im->buf[i] = 255;
-            }
-        }
-    }
-
-    return im;
 }
