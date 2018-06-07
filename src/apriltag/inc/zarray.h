@@ -38,10 +38,6 @@ either expressed or implied, of the Regents of The University of Michigan.
 #include <stdlib.h>
 #include <string.h>
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 /**
  * Defines a structure which acts as a resize-able array ala Java's ArrayList.
  */
@@ -484,9 +480,5 @@ static inline void zarray_add_all(zarray_t * dest, const zarray_t * source)
 
     free(tmp);
 }
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif

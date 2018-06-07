@@ -33,10 +33,6 @@ either expressed or implied, of the Regents of The University of Michigan.
 #ifndef _G2D_H
 #define _G2D_H
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #include "zarray.h"
 
 // This library tries to avoid needless proliferation of types.
@@ -124,9 +120,5 @@ int g2d_polygon_overlaps_polygon(const zarray_t *polya, const zarray_t *polyb);
 
 // returns the number of points written to x. see comments.
 int g2d_polygon_rasterize(const zarray_t *poly, double y, double *x);
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif

@@ -40,7 +40,7 @@ namespace ippe {
 void solvePoseOfMarker(float markerLength, matd_t* &imagePoints, matd_t* &cameraMatrix, matd_t* &distCoeffs,
                        matd_t* &R, matd_t* &t, float &reprojErr)
 {
-    matd_t *_R = nullptr, *_t = nullptr;
+    matd_t *_R = NULL, *_t = NULL;
     float _reprojErr;
     
     ippeSolvePoseOfCentredSquare(markerLength, imagePoints, cameraMatrix, distCoeffs,
@@ -54,19 +54,19 @@ void ippeSolvePoseOfCentredSquare(float squareLength, matd_t* &imagePoints, matd
                                   matd_t* &_R1, matd_t* &_tvec1, float& reprojErr1, 
                                   matd_t* &_R2, matd_t* &_tvec2, float& reprojErr2)
 {
-    assert(imagePoints != nullptr);
-    assert(cameraMatrix != nullptr);
+    assert(imagePoints != NULL);
+    assert(cameraMatrix != NULL);
     assert(imagePoints->nrows == 4 && imagePoints->ncols == 2);
     assert(cameraMatrix->nrows == 3 && cameraMatrix->ncols == 3);
-    assert(distCoeffs == nullptr || distCoeffs->nrows * distCoeffs->ncols == 5);
+    assert(distCoeffs == NULL || distCoeffs->nrows * distCoeffs->ncols == 5);
     
-    matd_t *undistortedPoints = nullptr;    // undistorted version of imagePoints
+    matd_t *undistortedPoints = NULL;    // undistorted version of imagePoints
     matd_t *modelPoints = matd_create(4, 3);
     
-    if (_R1 != nullptr) matd_destroy(_R1);
-    if (_tvec1 != nullptr) matd_destroy(_tvec1);
-    if (_R2 != nullptr) matd_destroy(_R2);
-    if (_tvec2 != nullptr) matd_destroy(_tvec2);
+    if (_R1 != NULL) matd_destroy(_R1);
+    if (_tvec1 != NULL) matd_destroy(_tvec1);
+    if (_R2 != NULL) matd_destroy(_R2);
+    if (_tvec2 != NULL) matd_destroy(_tvec2);
     
     /* set coordinate system in the middle of the centred square, with Z pointing out */
     float halfLength = squareLength / 2.0f;
@@ -76,9 +76,9 @@ void ippeSolvePoseOfCentredSquare(float squareLength, matd_t* &imagePoints, matd
     MATD_EL(modelPoints, 3, 0) = -halfLength;   MATD_EL(modelPoints, 3, 1) = -halfLength;   MATD_EL(modelPoints, 3, 2) = 0;
     
     /* (Ra, ta), (Rb, tb) are the two pose solutions from IPPE */
-    matd_t *Ra = nullptr, *ta = nullptr;
-    matd_t *Rb = nullptr, *tb = nullptr;
-    matd_t *H = nullptr;  // homography matrix pointer
+    matd_t *Ra = NULL, *ta = NULL;
+    matd_t *Rb = NULL, *tb = NULL;
+    matd_t *H = NULL;  // homography matrix pointer
     
     /* undistort the image points (i.e. put them in normalized pixel coordinates) */
     undistortPoints(imagePoints, undistortedPoints, cameraMatrix, distCoeffs);
@@ -140,10 +140,10 @@ void ippeSolvePoseOfCentredSquare(float squareLength, matd_t* &imagePoints, matd
 
 void homographyFromSquarePoints(matd_t* &_targetPts, float halfLength, matd_t* &_H)
 {
-    assert(_targetPts != nullptr);
+    assert(_targetPts != NULL);
     assert(_targetPts->nrows == 4 && _targetPts->ncols == 2);
     
-    if (_H != nullptr) matd_destroy(_H);
+    if (_H != NULL) matd_destroy(_H);
     _H = matd_create(3, 3);
     
     double p1x = -MATD_EL(_targetPts, 0, 0);
@@ -194,10 +194,10 @@ void ippeComputeRotations(double j00, double j01, double j10, double j11, double
      * then please refer to the IPPE paper (Algorithm 1 and its description). Or, you can read IPPE matlab code that is certainly 
      * easier to read.
      */
-    if (_R1 != nullptr) matd_destroy(_R1);
+    if (_R1 != NULL) matd_destroy(_R1);
     _R1 = matd_create(3, 3);
     
-    if (_R2 != nullptr) matd_destroy(_R2);
+    if (_R2 != NULL) matd_destroy(_R2);
     _R2 = matd_create(3, 3);
     
     double a00, a01, a10, a11, ata00, ata01, ata11, b00, b01, b10, b11, binv00, binv01, binv10, binv11;
@@ -314,9 +314,9 @@ void ippeComputeTranslation(matd_t* &_objectPoints, matd_t* &_imgPoints, matd_t*
      * This is then inverted with the associated normal equations to give t = inv(transpose(A)*A)*transpose(A)*b
      * For efficiency we only store the coefficients of (transpose(A)*A) and (transpose(A)*b)
      */
-    assert(_objectPoints != nullptr);
-    assert(_imgPoints != nullptr);
-    assert(_R != nullptr);
+    assert(_objectPoints != NULL);
+    assert(_imgPoints != NULL);
+    assert(_R != NULL);
     assert(_R->nrows == 3 && _R->ncols == 3);
     assert(_objectPoints->ncols == 3);
     assert(_imgPoints->ncols == 2);
@@ -324,7 +324,7 @@ void ippeComputeTranslation(matd_t* &_objectPoints, matd_t* &_imgPoints, matd_t*
     
     int numPts = _objectPoints->nrows;
     
-    if (_t != nullptr) matd_destroy(_t);
+    if (_t != NULL) matd_destroy(_t);
     _t = matd_create(3, 1);
     
     /* coefficients of (transpose(A)*A) */
@@ -399,8 +399,8 @@ void ippeComputeTranslation(matd_t* &_objectPoints, matd_t* &_imgPoints, matd_t*
 
 float ippeEvalReprojError(matd_t* &_R, matd_t* &_t, matd_t* &_objectPoints, matd_t* &_undistortedPoints)
 {
-    assert(_R != nullptr);
-    assert(_t != nullptr);
+    assert(_R != NULL);
+    assert(_t != NULL);
     assert(_R->nrows == 3 && _R->ncols == 3);
     assert(_t->nrows == 3 && _t->ncols == 1);
     assert(_objectPoints->ncols == 3 && _undistortedPoints->ncols == 2);
@@ -435,15 +435,15 @@ float ippeEvalReprojError(matd_t* &_R, matd_t* &_t, matd_t* &_objectPoints, matd
 
 void undistortPoints(matd_t* &_imagePoints, matd_t* &_undistortedPoints, matd_t* &_cameraMatrix, matd_t* &_distCoeffs, int _maxITER)
 {
-    assert(_imagePoints != nullptr);
-    assert(_cameraMatrix != nullptr);
+    assert(_imagePoints != NULL);
+    assert(_cameraMatrix != NULL);
     assert(_imagePoints->ncols == 2);
     assert(_cameraMatrix->nrows == 3 && _cameraMatrix->ncols == 3);
-    assert(_distCoeffs == nullptr || _distCoeffs->nrows * _distCoeffs->ncols == 5);
+    assert(_distCoeffs == NULL || _distCoeffs->nrows * _distCoeffs->ncols == 5);
     
     double k1, k2, p1, p2, k3;
     
-    if (_distCoeffs == nullptr) {
+    if (_distCoeffs == NULL) {
         k1 = k2 = p1 = p2 = k3 = 0;
     } else {
         k1 = _distCoeffs->data[0];
@@ -462,7 +462,7 @@ void undistortPoints(matd_t* &_imagePoints, matd_t* &_undistortedPoints, matd_t*
     
     int numPts = _imagePoints->nrows;
     
-    if (_undistortedPoints != nullptr) matd_destroy(_undistortedPoints);
+    if (_undistortedPoints != NULL) matd_destroy(_undistortedPoints);
     _undistortedPoints = matd_create(numPts, 2);
     
     for (int i = 0; i < numPts; i ++) {
@@ -474,7 +474,7 @@ void undistortPoints(matd_t* &_imagePoints, matd_t* &_undistortedPoints, matd_t*
         x = (x - cx) * ifx;
         y = (y - cy) * ify;
         
-        if (_distCoeffs != nullptr) {
+        if (_distCoeffs != NULL) {
             // vector (x, y, 1)
             x0 = x;
             y0 = y;

@@ -34,10 +34,6 @@
 #ifndef __TAG_FAMILY_H__
 #define __TAG_FAMILY_H__
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 enum tag_family_type {
     tag16h5,
     tag25h7,
@@ -49,10 +45,6 @@ enum tag_family_type {
 
 apriltag_family_t *tags_create(enum tag_family_type type);
 void tags_destroy(apriltag_family_t *tf);
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif /* __TAG_FAMILY_H__ */
 

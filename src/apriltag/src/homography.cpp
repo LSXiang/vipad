@@ -176,47 +176,47 @@ matd_t *homography_compute(zarray_t *correspondences, int flags)
     if (flags & HOMOGRAPHY_COMPUTE_FLAG_INVERSE) {
         // compute singular vector by (carefully) inverting the rank-deficient matrix.
 
-        if (1) {
-            matd_t *Ainv = matd_inverse(A);
-            double scale = 0;
-
-            for (int i = 0; i < 9; i++)
-                scale += sq(MATD_EL(Ainv, i, 0));
-            scale = sqrt(scale);
-
-            for (int i = 0; i < 3; i++)
-                for (int j = 0; j < 3; j++)
-                    MATD_EL(H, i, j) = MATD_EL(Ainv, 3*i+j, 0) / scale;
-
-            matd_destroy(Ainv);
-        } else {
-
-            matd_t *b = matd_create_data(9, 1, (double[]) { 1, 0, 0, 0, 0, 0, 0, 0, 0 });
-            matd_t *Ainv = NULL;
-
-            if (0) {
-                matd_plu_t *lu = matd_plu(A);
-                Ainv = matd_plu_solve(lu, b);
-                matd_plu_destroy(lu);
-            } else {
-                matd_chol_t *chol = matd_chol(A);
-                Ainv = matd_chol_solve(chol, b);
-                matd_chol_destroy(chol);
-            }
-
-            double scale = 0;
-
-            for (int i = 0; i < 9; i++)
-                scale += sq(MATD_EL(Ainv, i, 0));
-            scale = sqrt(scale);
-
-            for (int i = 0; i < 3; i++)
-                for (int j = 0; j < 3; j++)
-                    MATD_EL(H, i, j) = MATD_EL(Ainv, 3*i+j, 0) / scale;
-
-            matd_destroy(b);
-            matd_destroy(Ainv);
-        }
+//         if (1) {
+//             matd_t *Ainv = matd_inverse(A);
+//             double scale = 0;
+// 
+//             for (int i = 0; i < 9; i++)
+//                 scale += sq(MATD_EL(Ainv, i, 0));
+//             scale = sqrt(scale);
+// 
+//             for (int i = 0; i < 3; i++)
+//                 for (int j = 0; j < 3; j++)
+//                     MATD_EL(H, i, j) = MATD_EL(Ainv, 3*i+j, 0) / scale;
+// 
+//             matd_destroy(Ainv);
+//         } else {
+// 
+//             matd_t *b = matd_create_data(9, 1, (double[]) { 1, 0, 0, 0, 0, 0, 0, 0, 0 });
+//             matd_t *Ainv = NULL;
+// 
+//             if (0) {
+//                 matd_plu_t *lu = matd_plu(A);
+//                 Ainv = matd_plu_solve(lu, b);
+//                 matd_plu_destroy(lu);
+//             } else {
+//                 matd_chol_t *chol = matd_chol(A);
+//                 Ainv = matd_chol_solve(chol, b);
+//                 matd_chol_destroy(chol);
+//             }
+// 
+//             double scale = 0;
+// 
+//             for (int i = 0; i < 9; i++)
+//                 scale += sq(MATD_EL(Ainv, i, 0));
+//             scale = sqrt(scale);
+// 
+//             for (int i = 0; i < 3; i++)
+//                 for (int j = 0; j < 3; j++)
+//                     MATD_EL(H, i, j) = MATD_EL(Ainv, 3*i+j, 0) / scale;
+// 
+//             matd_destroy(b);
+//             matd_destroy(Ainv);
+//         }
 
     } else {
         // compute singular vector using SVD. A bit slower, but more accurate.

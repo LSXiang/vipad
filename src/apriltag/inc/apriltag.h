@@ -33,10 +33,6 @@ either expressed or implied, of the Regents of The University of Michigan.
 #ifndef _APRILTAG_H
 #define _APRILTAG_H
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #include <stdlib.h>
 
 #include "matd.h"
@@ -237,9 +233,5 @@ void apriltag_detection_destroy(apriltag_detection_t *det);
 
 // destroys the array AND the detections within it.
 void apriltag_detections_destroy(zarray_t *detections);
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif

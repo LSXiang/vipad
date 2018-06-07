@@ -152,7 +152,7 @@ void quad_destroy(struct quad *quad)
 
 struct quad *quad_copy(struct quad *quad)
 {
-    struct quad *q = calloc(1, sizeof(struct quad));
+    struct quad *q = (struct quad *)calloc(1, sizeof(struct quad));
     memcpy(q, quad, sizeof(struct quad));
     if (quad->H)
         q->H = matd_copy(quad->H);
@@ -188,7 +188,7 @@ void quick_decode_init(apriltag_family_t *family, int maxhamming)
     assert(family->impl == NULL);
     assert(family->ncodes < 65535);
 
-    struct quick_decode *qd = calloc(1, sizeof(struct quick_decode));
+    struct quick_decode *qd = (struct quick_decode *)calloc(1, sizeof(struct quick_decode));
     int capacity = family->ncodes;
 
     int nbits = family->d * family->d;
@@ -207,7 +207,7 @@ void quick_decode_init(apriltag_family_t *family, int maxhamming)
 //    printf("capacity %d, size: %.0f kB\n",
 //           capacity, qd->nentries * sizeof(struct quick_decode_entry) / 1024.0);
 
-    qd->entries = calloc(qd->nentries, sizeof(struct quick_decode_entry));
+    qd->entries = (quick_decode_entry *)calloc(qd->nentries, sizeof(struct quick_decode_entry));
     if (qd->entries == NULL) {
         printf("apriltag.c: failed to allocate hamming decode table. Reduce max hamming size.\n");
         exit(-1);
@@ -419,42 +419,42 @@ float quad_decode(apriltag_family_t *family, image_u8_t *im, struct quad *quad, 
     // { initial x, initial y, delta x, delta y, WHITE=1 }
     float patterns[] = {
         // left white column
-        0 - white_border / 2.0, 0.5,
+        static_cast<float>(0 - white_border / 2.0), 0.5,
         0, 1,
         1,
 
         // left black column
-        0 + family->black_border / 2.0, 0.5,
+        static_cast<float>(0 + family->black_border / 2.0), 0.5,
         0, 1,
         0,
 
         // right white column
-        2*family->black_border + family->d + white_border / 2.0, .5,
+        static_cast<float>(2*family->black_border + family->d + white_border / 2.0), .5,
         0, 1,
         1,
 
         // right black column
-        2*family->black_border + family->d - family->black_border / 2.0, .5,
+        static_cast<float>(2*family->black_border + family->d - family->black_border / 2.0), .5,
         0, 1,
         0,
 
         // top white row
-        0.5, -white_border / 2.0,
+        0.5, static_cast<float>(-white_border / 2.0),
         1, 0,
         1,
 
         // top black row
-        0.5, family->black_border / 2.0,
+        0.5, static_cast<float>(family->black_border / 2.0),
         1, 0,
         0,
 
         // bottom white row
-        0.5, 2*family->black_border + family->d + white_border / 2.0,
+        0.5, static_cast<float>(2*family->black_border + family->d + white_border / 2.0),
         1, 0,
         1,
 
         // bottom black row
-        0.5, 2*family->black_border + family->d - family->black_border / 2.0,
+        0.5, static_cast<float>(2*family->black_border + family->d - family->black_border / 2.0),
         1, 0,
         0
 
@@ -851,7 +851,7 @@ zarray_t *apriltag_detector_detect(apriltag_detector_t *td, image_u8_t *im_orig)
                 float decision_margin = quad_decode(family, im_orig, quad, &entry, NULL);
                 
                 if (entry.hamming < 255 && decision_margin >= 0) {
-                    apriltag_detection_t *det = calloc(1, sizeof(apriltag_detection_t));
+                    apriltag_detection_t *det = (apriltag_detection_t *)calloc(1, sizeof(apriltag_detection_t));
                     
                     det->family = family;
                     det->id = entry.id;

@@ -1,7 +1,7 @@
 
 
 #include <iostream>
-#include <chrono>
+// #include <chrono>
 
 #include <opencv2/opencv.hpp>
 
@@ -19,27 +19,6 @@ void getRelativeTransform2(double tag_size, double fx, double fy, double cx, dou
 
 int main(int argc, char *argv[])
 {
-//     getopt_t *getopt = getopt_create();
-// 
-//     getopt_add_bool(getopt, 'h', "help", 0, "Show this help");
-//     getopt_add_bool(getopt, 'd', "debug", 0, "Enable debugging output (slow)");
-//     getopt_add_bool(getopt, 'q', "quiet", 0, "Reduce output");
-//     getopt_add_string(getopt, 'f', "family", "tag36h11", "Tag family to use");
-//     getopt_add_int(getopt, '\0', "border", "1", "Set tag family border size");
-//     getopt_add_int(getopt, 't', "threads", "4", "Use this many CPU threads");
-//     getopt_add_double(getopt, 'x', "decimate", "1.0", "Decimate input image by this factor");
-//     getopt_add_double(getopt, 'b', "blur", "0.0", "Apply low-pass blur to input");
-//     getopt_add_bool(getopt, '0', "refine-edges", 1, "Spend more time trying to align edges of tags");
-//     getopt_add_bool(getopt, '1', "refine-decode", 0, "Spend more time trying to decode tags");
-//     getopt_add_bool(getopt, '2', "refine-pose", 0, "Spend more time trying to precisely localize tags");
-// 
-//     if (!getopt_parse(getopt, argc, argv, 1) ||
-//             getopt_get_bool(getopt, "help")) {
-//         printf("Usage: %s [options]\n", argv[0]);
-//         getopt_do_usage(getopt);
-//         exit(0);
-//     }
-
     // Initialize camera
     VideoCapture cap(0);
     if (!cap.isOpened()) {
@@ -49,41 +28,15 @@ int main(int argc, char *argv[])
 
     // Initialize tag detector with options
     apriltag_family_t *tf = NULL;
-//     const char *famname = getopt_get_string(getopt, "family");
-//     if (!strcmp(famname, "tag36h11"))
-//         tf = tag36h11_create();
-//     else if (!strcmp(famname, "tag36h10"))
-//         tf = tag36h10_create();
-//     else if (!strcmp(famname, "tag36artoolkit"))
-//         tf = tag36artoolkit_create();
-//     else if (!strcmp(famname, "tag25h9"))
-//         tf = tag25h9_create();
-//     else if (!strcmp(famname, "tag25h7"))
-//         tf = tag25h7_create();
-//     else {
-//         printf("Unrecognized tag family name. Use e.g. \"tag36h11\".\n");
-//         exit(-1);
-//     }
-//     tf->black_border = getopt_get_int(getopt, "border");
         
     tf = tags_create(tag36h11);
 
     apriltag_detector_t *td = apriltag_detector_create();
     apriltag_detector_add_family(td, tf);
-//     td->quad_decimate = getopt_get_double(getopt, "decimate");
-//     td->quad_sigma = getopt_get_double(getopt, "blur");
-//     td->nthreads = getopt_get_int(getopt, "threads");
-//     td->debug = getopt_get_bool(getopt, "debug");
-//     td->refine_edges = getopt_get_bool(getopt, "refine-edges");
-//     td->refine_decode = getopt_get_bool(getopt, "refine-decode");
-//     td->refine_pose = getopt_get_bool(getopt, "refine-pose");
+    
     td->quad_decimate = 1.0f;
     td->quad_sigma = 0.8f;
-//     td->nthreads = 4;
-//     td->debug = 0;
     td->refine_edges = 1;
-//     td->refine_decode = 0;
-//     td->refine_pose = 0;
     
     
 
@@ -169,19 +122,19 @@ int main(int argc, char *argv[])
 //             matd_destroy(R_t);
 //             matd_destroy(pose);
             
-            chrono::steady_clock::time_point t1 = chrono::steady_clock::now();
+//             chrono::steady_clock::time_point t1 = chrono::steady_clock::now();
             getRelativeTransform(0.1, 2.4908279215754123e+03, 2.4935314568583112e+03, 3.4745731382095448e+02, 2.4094331871742105e+02, det->p);
-            chrono::steady_clock::time_point t2 = chrono::steady_clock::now();
-            chrono::duration<double> time_used = chrono::duration_cast<chrono::duration<double>> (t2 - t1);
-            std::cout << "opencv pnp cost time: " << time_used.count() << std::endl;
-            
-            t1 = chrono::steady_clock::now();
+//             chrono::steady_clock::time_point t2 = chrono::steady_clock::now();
+//             chrono::duration<double> time_used = chrono::duration_cast<chrono::duration<double>> (t2 - t1);
+//             std::cout << "opencv pnp cost time: " << time_used.count() << std::endl;
+//             
+//             t1 = chrono::steady_clock::now();
             getRelativeTransform2(0.1, 2.4908279215754123e+03, 2.4935314568583112e+03, 3.4745731382095448e+02, 2.4094331871742105e+02, det->p);
-            t2 = chrono::steady_clock::now();
-            chrono::duration<double> time_used2 = chrono::duration_cast<chrono::duration<double>> (t2 - t1);
-            std::cout << "ippe cost time: " << time_used2.count() << std::endl;
-            
-            std::cout << "ippe speed / opencv speed :" << time_used.count() / time_used2.count() << endl;
+//             t2 = chrono::steady_clock::now();
+//             chrono::duration<double> time_used2 = chrono::duration_cast<chrono::duration<double>> (t2 - t1);
+//             std::cout << "ippe cost time: " << time_used2.count() << std::endl;
+//             
+//             std::cout << "ippe speed / opencv speed :" << time_used.count() / time_used2.count() << endl;
             
             apriltag_detection_destroy(det);
         }
@@ -196,18 +149,6 @@ int main(int argc, char *argv[])
     apriltag_detector_destroy(td);
     
     tags_destroy(tf);
-    
-//     if (!strcmp(famname, "tag36h11"))
-//         tag36h11_destroy(tf);
-//     else if (!strcmp(famname, "tag36h10"))
-//         tag36h10_destroy(tf);
-//     else if (!strcmp(famname, "tag36artoolkit"))
-//         tag36artoolkit_destroy(tf);
-//     else if (!strcmp(famname, "tag25h9"))
-//         tag25h9_destroy(tf);
-//     else if (!strcmp(famname, "tag25h7"))
-//         tag25h7_destroy(tf);
-//     getopt_destroy(getopt);
 
     return 0;
 }
@@ -266,17 +207,7 @@ void getRelativeTransform(double tag_size, double fx, double fy, double px, doub
   
 //     cout << "x y z ------ : " << tvec.at<double>(0) <<  ",\t" << tvec.at<double>(1) << ",\t" << tvec.at<double>(2) << endl;
 //     cout << "R ------ : " << r << endl;
-//     cout << "yaw ------ :" << std::atan2<float>(r(1, 0), r(0, 0)) * 57.3 << endl;
-    
-    
-    /*******************************************************************************************************/
-//     aruco::solvePnP(objPts, imgPts, cameraMatrix, distParam, rvec, tvec);
-//     cv::Rodrigues(rvec, r);
-// //     cout << r << endl;
-//     cv::Vec3d tt(tvec.at<double>(0), tvec.at<double>(1), tvec.at<double>(2));
-//     ttt = - r.t() * tt;
-//     cout << "x y z &&&& : " << ttt[0] <<  ",\t" << ttt[1] << ",\t" << ttt[2] << endl;
-    
+//     cout << "yaw ------ :" << std::atan2<float>(r(1, 0), r(0, 0)) * 57.3 << endl;    
 }
 
 void getRelativeTransform2(double tag_size, double fx, double fy, double cx, double cy, double p[4][2])
@@ -295,7 +226,7 @@ void getRelativeTransform2(double tag_size, double fx, double fy, double cx, dou
     double dist[] = {-5.0968287369808518e-02, -8.0252844113471298e+01, -1.5334326534795978e-03, -1.8098396142340031e-02,  -1.0045140113684745e+00};
     distParam = matd_create_data(1, 5, dist);
     
-    matd_t *R = nullptr, *t = nullptr;
+    matd_t *R = NULL, *t = NULL;
     float reprojErr;
     
     ippe::solvePoseOfMarker(tag_size, imagePoints, cameraMatrix, distParam, R, t, reprojErr);

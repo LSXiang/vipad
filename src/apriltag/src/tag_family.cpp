@@ -3836,7 +3836,7 @@ const uint32_t hamming[] = {5, 7, 9, 7, 10, 11};
  */
 apriltag_family_t *tags_create(enum tag_family_type type)
 {
-   apriltag_family_t *tf = calloc(1, sizeof(apriltag_family_t));
+   apriltag_family_t *tf = (apriltag_family_t *)calloc(1, sizeof(apriltag_family_t));
    tf->name = (char *)tags_name_ptr[type];
    tf->black_border = 1;
    tf->d = wide[type];

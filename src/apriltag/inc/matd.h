@@ -37,10 +37,6 @@ either expressed or implied, of the Regents of The University of Michigan.
 #include <stddef.h>
 #include <string.h>
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 /**
  * Defines a matrix structure for holding double-precision values with
  * data in row-major order (i.e. index = row*ncols + col).
@@ -446,9 +442,5 @@ void matd_utriangle_solve(matd_t *u, const double *b, double *x);
 
 
 double matd_max(matd_t *m);
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif
