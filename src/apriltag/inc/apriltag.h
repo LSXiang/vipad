@@ -73,8 +73,8 @@ struct apriltag_family
     // minimum hamming distance between any two codes. (e.g. 36h11 => 11)
     uint32_t h;
 
-    // a human-readable name, e.g., "tag36h11"
-    char *name;
+//     // a human-readable name, e.g., "tag36h11"
+//     char *name;
 
     // some detector implementations may preprocess codes in order to
     // accelerate decoding.  They put their data here. (Do not use the

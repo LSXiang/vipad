@@ -3818,17 +3818,17 @@ const uint64_t *tags_ptr[] =
     t36h11
 };
 
-/**
- * AprilTag class pointers
- */
-const char *tags_name_ptr[] = {
-    "tag16h5",
-    "tag25h7",
-    "tag25h9",
-    "tag36artoolkit",
-    "tag36h10",
-    "tag36h11"
-};
+///**
+// * AprilTag class pointers
+// */
+// const char *tags_name_ptr[] = {
+//     "tag16h5",
+//     "tag25h7",
+//     "tag25h9",
+//     "tag36artoolkit",
+//     "tag36h10",
+//     "tag36h11"
+// };
 
 const uint32_t wide[] = {4, 5, 5, 6, 6, 6};
 const uint32_t hamming[] = {5, 7, 9, 7, 10, 11};
@@ -3839,7 +3839,7 @@ const uint32_t hamming[] = {5, 7, 9, 7, 10, 11};
 apriltag_family_t *tags_create(enum tag_family_type type)
 {
    apriltag_family_t *tf = (apriltag_family_t *)apriltagCalloc(1, sizeof(apriltag_family_t));
-   tf->name = (char *)tags_name_ptr[type];
+//    tf->name = (char *)tags_name_ptr[type];
    tf->black_border = 1;
    tf->d = wide[type];
    tf->h = hamming[type];
