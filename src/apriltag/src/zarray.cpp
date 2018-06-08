@@ -37,6 +37,8 @@ either expressed or implied, of the Regents of The University of Michigan.
 
 #include "zarray.h"
 
+namespace apriltag {
+
 int zstrcmp(const void * a_pp, const void * b_pp)
 {
     assert(a_pp != NULL);
@@ -60,3 +62,8 @@ int zstrcmp(const void * a_pp, const void * b_pp)
 //         f(p);
 //     }
 // }
+
+
+} /* namespace apriltag */
+
+

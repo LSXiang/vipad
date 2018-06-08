@@ -48,6 +48,8 @@ either expressed or implied, of the Regents of The University of Michigan.
 
 #include "apriltag_math.h"
 
+namespace apriltag {
+
 #ifndef M_PI
 # define M_PI 3.141592653589793238462643383279502884196
 #endif
@@ -147,12 +149,12 @@ void quad_destroy(struct quad *quad)
         return;
 
     matd_destroy(quad->H);
-    free(quad);
+    apriltagFree(quad);
 }
 
 struct quad *quad_copy(struct quad *quad)
 {
-    struct quad *q = (struct quad *)calloc(1, sizeof(struct quad));
+    struct quad *q = (struct quad *)apriltagCalloc(1, sizeof(struct quad));
     memcpy(q, quad, sizeof(struct quad));
     if (quad->H)
         q->H = matd_copy(quad->H);
@@ -178,8 +180,8 @@ void quick_decode_uninit(apriltag_family_t *fam)
         return;
 
     struct quick_decode *qd = (struct quick_decode*) fam->impl;
-    free(qd->entries);
-    free(qd);
+    apriltagFree(qd->entries);
+    apriltagFree(qd);
     fam->impl = NULL;
 }
 
@@ -188,7 +190,7 @@ void quick_decode_init(apriltag_family_t *family, int maxhamming)
     assert(family->impl == NULL);
     assert(family->ncodes < 65535);
 
-    struct quick_decode *qd = (struct quick_decode *)calloc(1, sizeof(struct quick_decode));
+    struct quick_decode *qd = (struct quick_decode *)apriltagCalloc(1, sizeof(struct quick_decode));
     int capacity = family->ncodes;
 
     int nbits = family->d * family->d;
@@ -207,7 +209,7 @@ void quick_decode_init(apriltag_family_t *family, int maxhamming)
 //    printf("capacity %d, size: %.0f kB\n",
 //           capacity, qd->nentries * sizeof(struct quick_decode_entry) / 1024.0);
 
-    qd->entries = (quick_decode_entry *)calloc(qd->nentries, sizeof(struct quick_decode_entry));
+    qd->entries = (quick_decode_entry *)apriltagCalloc(qd->nentries, sizeof(struct quick_decode_entry));
     if (qd->entries == NULL) {
         printf("apriltag.c: failed to allocate hamming decode table. Reduce max hamming size.\n");
         exit(-1);
@@ -337,7 +339,7 @@ void apriltag_detector_clear_families(apriltag_detector_t *td)
 
 apriltag_detector_t *apriltag_detector_create()
 {
-    apriltag_detector_t *td = (apriltag_detector_t*) calloc(1, sizeof(apriltag_detector_t));
+    apriltag_detector_t *td = (apriltag_detector_t*) apriltagCalloc(1, sizeof(apriltag_detector_t));
 
     td->quad_decimate = 1.0;
     td->quad_sigma = 0.0;
@@ -362,7 +364,7 @@ void apriltag_detector_destroy(apriltag_detector_t *td)
     apriltag_detector_clear_families(td);
 
     zarray_destroy(td->tag_families);
-    free(td);
+    apriltagFree(td);
 }
 
 // returns non-zero if an error occurs (i.e., H has no inverse)
@@ -718,7 +720,7 @@ void apriltag_detection_destroy(apriltag_detection_t *det)
         return;
 
     matd_destroy(det->H);
-    free(det);
+    apriltagFree(det);
 }
 
 int prefer_smaller(int pref, double q0, double q1)
@@ -851,7 +853,7 @@ zarray_t *apriltag_detector_detect(apriltag_detector_t *td, image_u8_t *im_orig)
                 float decision_margin = quad_decode(family, im_orig, quad, &entry, NULL);
                 
                 if (entry.hamming < 255 && decision_margin >= 0) {
-                    apriltag_detection_t *det = (apriltag_detection_t *)calloc(1, sizeof(apriltag_detection_t));
+                    apriltag_detection_t *det = (apriltag_detection_t *)apriltagCalloc(1, sizeof(apriltag_detection_t));
                     
                     det->family = family;
                     det->id = entry.id;
@@ -996,3 +998,7 @@ void apriltag_detections_destroy(zarray_t *detections)
 
     zarray_destroy(detections);
 }
+
+} /* namespace apriltag */
+
+

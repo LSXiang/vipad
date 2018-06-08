@@ -38,6 +38,8 @@ either expressed or implied, of the Regents of The University of Michigan.
 #include "homography.h"
 #include "math_util.h"
 
+namespace apriltag {
+
 // correspondences is a list of float[4]s, consisting of the points x
 // and y concatenated. We will compute a homography such that y = Hx
 matd_t *homography_compute(zarray_t *correspondences, int flags)
@@ -483,3 +485,7 @@ matd_t *homography_compute(zarray_t *correspondences, int flags)
 //     MATD_EL(M, 2, 1) = 2*y*z + 2*w*x;
 //     MATD_EL(M, 2, 2) = w*w - x*x - y*y + z*z;
 // }
+
+
+} /* namespace apriltag */
+

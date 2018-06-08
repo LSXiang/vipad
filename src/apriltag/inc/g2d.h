@@ -35,6 +35,8 @@ either expressed or implied, of the Regents of The University of Michigan.
 
 #include "zarray.h"
 
+namespace apriltag {
+
 // This library tries to avoid needless proliferation of types.
 //
 // A point is a double[2]. (Note that when passing a double[2] as an
@@ -120,5 +122,7 @@ int g2d_polygon_overlaps_polygon(const zarray_t *polya, const zarray_t *polyb);
 
 // returns the number of points written to x. see comments.
 int g2d_polygon_rasterize(const zarray_t *poly, double y, double *x);
+
+} /* namespace apriltag */
 
 #endif

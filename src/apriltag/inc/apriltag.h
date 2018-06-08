@@ -39,6 +39,8 @@ either expressed or implied, of the Regents of The University of Michigan.
 #include "image_u8.h"
 #include "zarray.h"
 
+namespace apriltag {
+
 #define APRILTAG_TASKS_PER_THREAD_TARGET 10
 
 struct quad
@@ -233,5 +235,8 @@ void apriltag_detection_destroy(apriltag_detection_t *det);
 
 // destroys the array AND the detections within it.
 void apriltag_detections_destroy(zarray_t *detections);
+
+
+} /* namespace apriltag */
 
 #endif

@@ -1,7 +1,7 @@
 
 
 #include <iostream>
-// #include <chrono>
+#include <chrono>
 
 #include <opencv2/opencv.hpp>
 
@@ -13,6 +13,7 @@
 
 using namespace std;
 using namespace cv;
+using namespace apriltag;
 
 void getRelativeTransform(double tag_size, double fx, double fy, double px, double py, double p[4][2]);
 void getRelativeTransform2(double tag_size, double fx, double fy, double cx, double cy, double p[4][2]);
@@ -28,7 +29,7 @@ int main(int argc, char *argv[])
 
     // Initialize tag detector with options
     apriltag_family_t *tf = NULL;
-        
+    
     tf = tags_create(tag36h11);
 
     apriltag_detector_t *td = apriltag_detector_create();
@@ -122,19 +123,19 @@ int main(int argc, char *argv[])
 //             matd_destroy(R_t);
 //             matd_destroy(pose);
             
-//             chrono::steady_clock::time_point t1 = chrono::steady_clock::now();
+            chrono::steady_clock::time_point t1 = chrono::steady_clock::now();
             getRelativeTransform(0.1, 2.4908279215754123e+03, 2.4935314568583112e+03, 3.4745731382095448e+02, 2.4094331871742105e+02, det->p);
-//             chrono::steady_clock::time_point t2 = chrono::steady_clock::now();
-//             chrono::duration<double> time_used = chrono::duration_cast<chrono::duration<double>> (t2 - t1);
-//             std::cout << "opencv pnp cost time: " << time_used.count() << std::endl;
-//             
-//             t1 = chrono::steady_clock::now();
+            chrono::steady_clock::time_point t2 = chrono::steady_clock::now();
+            chrono::duration<double> time_used = chrono::duration_cast<chrono::duration<double>> (t2 - t1);
+            std::cout << "opencv pnp cost time: " << time_used.count() << std::endl;
+            
+            t1 = chrono::steady_clock::now();
             getRelativeTransform2(0.1, 2.4908279215754123e+03, 2.4935314568583112e+03, 3.4745731382095448e+02, 2.4094331871742105e+02, det->p);
-//             t2 = chrono::steady_clock::now();
-//             chrono::duration<double> time_used2 = chrono::duration_cast<chrono::duration<double>> (t2 - t1);
-//             std::cout << "ippe cost time: " << time_used2.count() << std::endl;
-//             
-//             std::cout << "ippe speed / opencv speed :" << time_used.count() / time_used2.count() << endl;
+            t2 = chrono::steady_clock::now();
+            chrono::duration<double> time_used2 = chrono::duration_cast<chrono::duration<double>> (t2 - t1);
+            std::cout << "ippe cost time: " << time_used2.count() << std::endl;
+            
+            std::cout << "ippe speed / opencv speed :" << time_used.count() / time_used2.count() << endl;
             
             apriltag_detection_destroy(det);
         }

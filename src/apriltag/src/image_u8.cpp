@@ -38,6 +38,9 @@ either expressed or implied, of the Regents of The University of Michigan.
 
 #include "image_u8.h"
 #include "math_util.h"
+#include "apriltag_allocator.h"
+
+namespace apriltag {
 
 // least common multiple of 64 (sandy bridge cache line) and 24 (stride
 // needed for RGB in 8-wide vector processing)
@@ -45,12 +48,12 @@ either expressed or implied, of the Regents of The University of Michigan.
 
 image_u8_t *image_u8_create_stride(unsigned int width, unsigned int height, unsigned int stride)
 {
-    uint8_t *buf = (uint8_t *)calloc(height*stride, sizeof(uint8_t));
+    uint8_t *buf = (uint8_t *)apriltagCalloc(height*stride, sizeof(uint8_t));
 
     // const initializer
     image_u8_t tmp = { .width = (int32_t)width, .height = (const int32_t)height, .stride = (const int32_t)stride, .buf = buf };
 
-    image_u8_t *im = (image_u8_t *)calloc(1, sizeof(image_u8_t));
+    image_u8_t *im = (image_u8_t *)apriltagCalloc(1, sizeof(image_u8_t));
     memcpy(im, &tmp, sizeof(image_u8_t));
     return im;
 }
@@ -72,13 +75,13 @@ image_u8_t *image_u8_create_alignment(unsigned int width, unsigned int height, u
 
 image_u8_t *image_u8_copy(const image_u8_t *in)
 {
-    uint8_t *buf = (uint8_t *)malloc(in->height*in->stride*sizeof(uint8_t));
+    uint8_t *buf = (uint8_t *)apriltagMalloc(in->height*in->stride*sizeof(uint8_t));
     memcpy(buf, in->buf, in->height*in->stride*sizeof(uint8_t));
 
     // const initializer
     image_u8_t tmp = { .width = in->width, .height = in->height, .stride = in->stride, .buf = buf };
 
-    image_u8_t *copy = (image_u8_t *)calloc(1, sizeof(image_u8_t));
+    image_u8_t *copy = (image_u8_t *)apriltagCalloc(1, sizeof(image_u8_t));
     memcpy(copy, &tmp, sizeof(image_u8_t));
     return copy;
 }
@@ -88,8 +91,8 @@ void image_u8_destroy(image_u8_t *im)
     if (!im)
         return;
 
-    free(im->buf);
-    free(im);
+    apriltagFree(im->buf);
+    apriltagFree(im);
 }
 
 void image_u8_draw_circle(image_u8_t *im, float x0, float y0, float r, int v)
@@ -576,3 +579,6 @@ void image_u8_fill_line_max(image_u8_t *im, const image_u8_lut_t *lut, const flo
         }
     }
 }
+
+} /* namespace apriltag */
+

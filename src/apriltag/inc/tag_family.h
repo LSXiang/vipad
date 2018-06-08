@@ -34,6 +34,8 @@
 #ifndef __TAG_FAMILY_H__
 #define __TAG_FAMILY_H__
 
+namespace apriltag {
+
 enum tag_family_type {
     tag16h5,
     tag25h7,
@@ -45,6 +47,8 @@ enum tag_family_type {
 
 apriltag_family_t *tags_create(enum tag_family_type type);
 void tags_destroy(apriltag_family_t *tf);
+
+} /* namespace apriltag */
 
 #endif /* __TAG_FAMILY_H__ */
 

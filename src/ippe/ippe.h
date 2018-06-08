@@ -35,6 +35,8 @@
 #include "matd.h"
 
 namespace ippe {
+    
+using namespace apriltag;
 
 /** 
  * @brief Finds the possible poses of a square marker planar object given its four corner correspondences in an image

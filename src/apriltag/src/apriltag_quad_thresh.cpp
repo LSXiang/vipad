@@ -44,6 +44,8 @@ either expressed or implied, of the Regents of The University of Michigan.
 #include "unionfind.h"
 #include "math_util.h"
 
+namespace apriltag {
+
 static inline uint32_t u64hash_2(uint64_t x) {
     return (2654435761 * x) >> 32;
     return (uint32_t) x;
@@ -142,7 +144,7 @@ static inline void ptsort(struct pt *pts, int sz)
 
     if (stacksz == 0) {
         // it was too big, malloc it instead.
-        tmp = (struct pt *)malloc(sizeof(struct pt) * sz);
+        tmp = (struct pt *)apriltagMalloc(sizeof(struct pt) * sz);
     }
 
     memcpy(tmp, pts, sizeof(struct pt) * sz);
@@ -178,7 +180,7 @@ static inline void ptsort(struct pt *pts, int sz)
         memcpy(&pts[outpos], &bs[bpos], (bsz-bpos)*sizeof(struct pt));
 
     if (stacksz == 0)
-        free(tmp);
+        apriltagFree(tmp);
 
 #undef MERGE
 }
@@ -668,7 +670,7 @@ int fit_quad(apriltag_detector_t *td, image_u8_t *im, zarray_t *cluster, struct 
     // Step 2. Precompute statistics that allow line fit queries to be
     // efficiently computed for any contiguous range of indices.
 
-    struct line_fit_pt *lfps = (struct line_fit_pt *)calloc(sz, sizeof(struct line_fit_pt));
+    struct line_fit_pt *lfps = (struct line_fit_pt *)apriltagCalloc(sz, sizeof(struct line_fit_pt));
 
     for (int i = 0; i < sz; i++) {
         struct pt *p;
@@ -929,7 +931,7 @@ int fit_quad(apriltag_detector_t *td, image_u8_t *im, zarray_t *cluster, struct 
 */
   finish:
 
-    free(lfps);
+    apriltagFree(lfps);
 
     return res;
 }
@@ -999,8 +1001,8 @@ image_u8_t *threshold(apriltag_detector_t *td, image_u8_t *im)
     int tw = w / tilesz;
     int th = h / tilesz;
 
-    uint8_t *im_max = (uint8_t *)calloc(tw*th, sizeof(uint8_t));
-    uint8_t *im_min = (uint8_t *)calloc(tw*th, sizeof(uint8_t));
+    uint8_t *im_max = (uint8_t *)apriltagCalloc(tw*th, sizeof(uint8_t));
+    uint8_t *im_min = (uint8_t *)apriltagCalloc(tw*th, sizeof(uint8_t));
 
     // first, collect min/max statistics for each tile
     for (int ty = 0; ty < th; ty++) {
@@ -1028,8 +1030,8 @@ image_u8_t *threshold(apriltag_detector_t *td, image_u8_t *im)
     // over larger areas. This reduces artifacts due to abrupt changes
     // in the threshold value.
     if (1) {
-        uint8_t *im_max_tmp = (uint8_t *)calloc(tw*th, sizeof(uint8_t));
-        uint8_t *im_min_tmp = (uint8_t *)calloc(tw*th, sizeof(uint8_t));
+        uint8_t *im_max_tmp = (uint8_t *)apriltagCalloc(tw*th, sizeof(uint8_t));
+        uint8_t *im_min_tmp = (uint8_t *)apriltagCalloc(tw*th, sizeof(uint8_t));
 
         for (int ty = 0; ty < th; ty++) {
             for (int tx = 0; tx < tw; tx++) {
@@ -1055,8 +1057,8 @@ image_u8_t *threshold(apriltag_detector_t *td, image_u8_t *im)
                 im_min_tmp[ty*tw + tx] = min;
             }
         }
-        free(im_max);
-        free(im_min);
+        apriltagFree(im_max);
+        apriltagFree(im_min);
         im_max = im_max_tmp;
         im_min = im_min_tmp;
     }
@@ -1140,8 +1142,8 @@ image_u8_t *threshold(apriltag_detector_t *td, image_u8_t *im)
         }
     }
 
-    free(im_min);
-    free(im_max);
+    apriltagFree(im_min);
+    apriltagFree(im_max);
 
     // this is a dilate/erode deglitching scheme that does not improve
     // anything as far as I can tell.
@@ -1206,7 +1208,7 @@ zarray_t *apriltag_quad_thresh(apriltag_detector_t *td, image_u8_t *im)
     // XXX sizing??
     int nclustermap = 2*w*h - 1;
 
-    struct uint64_zarray_entry **clustermap = (struct uint64_zarray_entry **)calloc(nclustermap, sizeof(struct uint64_zarray_entry*));
+    struct uint64_zarray_entry **clustermap = (struct uint64_zarray_entry **)apriltagCalloc(nclustermap, sizeof(struct uint64_zarray_entry*));
 
     for (int y = 1; y < h-1; y++) {
         for (int x = 1; x < w-1; x++) {
@@ -1258,7 +1260,7 @@ zarray_t *apriltag_quad_thresh(apriltag_detector_t *td, image_u8_t *im)
                     }                                                   \
                                                                         \
                     if (!entry) {                                       \
-                        entry = (uint64_zarray_entry *)calloc(1, sizeof(struct uint64_zarray_entry)); \
+                        entry = (uint64_zarray_entry *)apriltagCalloc(1, sizeof(struct uint64_zarray_entry)); \
                         entry->id = clusterid;                          \
                         entry->cluster = zarray_create(sizeof(struct pt)); \
                         entry->next = clustermap[clustermap_bucket];    \
@@ -1301,11 +1303,11 @@ zarray_t *apriltag_quad_thresh(apriltag_detector_t *td, image_u8_t *im)
         struct uint64_zarray_entry *entry = clustermap[i];
         while (entry) {
           struct uint64_zarray_entry *tmp = entry->next;
-          free(entry);
+          apriltagFree(entry);
           entry = tmp;
         }
       }
-      free(clustermap);
+      apriltagFree(clustermap);
     }
 
     zarray_t *quads = zarray_create(sizeof(struct quad));
@@ -1355,3 +1357,5 @@ zarray_t *apriltag_quad_thresh(apriltag_detector_t *td, image_u8_t *im)
 
     return quads;
 }
+
+} /* namespace apriltag */

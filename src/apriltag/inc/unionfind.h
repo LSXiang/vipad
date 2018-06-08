@@ -34,7 +34,9 @@ either expressed or implied, of the Regents of The University of Michigan.
 #define _UNIONFIND_H
 
 #include <stdint.h>
-#include <stdlib.h>
+#include "apriltag_allocator.h"
+
+namespace apriltag {
 
 typedef struct unionfind unionfind_t;
 
@@ -57,9 +59,9 @@ struct ufrec
 
 static inline unionfind_t *unionfind_create(uint32_t maxid)
 {
-    unionfind_t *uf = (unionfind_t*) calloc(1, sizeof(unionfind_t));
+    unionfind_t *uf = (unionfind_t*)apriltagCalloc(1, sizeof(unionfind_t));
     uf->maxid = maxid;
-    uf->data = (struct ufrec*) malloc((maxid+1) * sizeof(struct ufrec));
+    uf->data = (struct ufrec*)apriltagMalloc((maxid+1) * sizeof(struct ufrec));
     for (int i = 0; i <= maxid; i++) {
         uf->data[i].size = 1;
         uf->data[i].parent = i;
@@ -69,8 +71,8 @@ static inline unionfind_t *unionfind_create(uint32_t maxid)
 
 static inline void unionfind_destroy(unionfind_t *uf)
 {
-    free(uf->data);
-    free(uf);
+    apriltagFree(uf->data);
+    apriltagFree(uf);
 }
 
 /*
@@ -154,4 +156,7 @@ static inline uint32_t unionfind_connect(unionfind_t *uf, uint32_t aid, uint32_t
         return broot;
     }
 }
+
+} /* namespace apriltag */
+
 #endif

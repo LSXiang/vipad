@@ -38,6 +38,10 @@ either expressed or implied, of the Regents of The University of Michigan.
 #include <stdlib.h>
 #include <string.h>
 
+#include "apriltag_allocator.h"
+
+namespace apriltag {
+
 /**
  * Defines a structure which acts as a resize-able array ala Java's ArrayList.
  */
@@ -60,7 +64,7 @@ static inline zarray_t *zarray_create(size_t el_sz)
 {
     assert(el_sz > 0);
 
-    zarray_t *za = (zarray_t*) calloc(1, sizeof(zarray_t));
+    zarray_t *za = (zarray_t*) apriltagCalloc(1, sizeof(zarray_t));
     za->el_sz = el_sz;
     return za;
 }
@@ -75,9 +79,9 @@ static inline void zarray_destroy(zarray_t *za)
         return;
 
     if (za->data != NULL)
-        free(za->data);
+        apriltagFree(za->data);
     memset(za, 0, sizeof(zarray_t));
-    free(za);
+    apriltagFree(za);
 }
 
 /** Allocate a new zarray that contains a copy of the data in the argument. **/
@@ -85,11 +89,11 @@ static inline zarray_t *zarray_copy(const zarray_t *za)
 {
     assert(za != NULL);
 
-    zarray_t *zb = (zarray_t*) calloc(1, sizeof(zarray_t));
+    zarray_t *zb = (zarray_t*) apriltagCalloc(1, sizeof(zarray_t));
     zb->el_sz = za->el_sz;
     zb->size = za->size;
     zb->alloc = za->alloc;
-    zb->data = (char*) malloc(zb->alloc * zb->el_sz);
+    zb->data = (char*) apriltagMalloc(zb->alloc * zb->el_sz);
     memcpy(zb->data, za->data, za->size * za->el_sz);
     return zb;
 }
@@ -115,11 +119,11 @@ static inline zarray_t *zarray_copy_subset(const zarray_t *za,
                              int start_idx,
                              int end_idx_exclusive)
 {
-    zarray_t *out = (zarray_t*) calloc(1, sizeof(zarray_t));
+    zarray_t *out = (zarray_t*) apriltagCalloc(1, sizeof(zarray_t));
     out->el_sz = za->el_sz;
     out->size = end_idx_exclusive - start_idx;
     out->alloc = iceillog2(out->size); // round up pow 2
-    out->data = (char*) malloc(out->alloc * out->el_sz);
+    out->data = (char*) apriltagMalloc(out->alloc * out->el_sz);
     memcpy(out->data,  za->data +(start_idx*out->el_sz), out->size*out->el_sz);
     return out;
 }
@@ -471,14 +475,16 @@ static inline void zarray_add_all(zarray_t * dest, const zarray_t * source)
 
     // Don't allocate on stack because el_sz could be larger than ~8 MB
     // stack size
-    char *tmp = (char*)calloc(1, dest->el_sz);
+    char *tmp = (char*)apriltagCalloc(1, dest->el_sz);
 
     for (int i = 0; i < zarray_size(source); i++) {
         zarray_get(source, i, tmp);
         zarray_add(dest, tmp);
    }
 
-    free(tmp);
+    apriltagFree(tmp);
 }
+
+} /* namespace apriltag */
 
 #endif

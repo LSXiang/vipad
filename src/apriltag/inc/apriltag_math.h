@@ -35,6 +35,8 @@ either expressed or implied, of the Regents of The University of Michigan.
 
 #include <math.h>
 
+namespace apriltag {
+
 // Computes the cholesky factorization of A, putting the lower
 // triangular matrix into R.
 static inline void mat33_chol(const double *A,
@@ -105,5 +107,7 @@ static inline void mat33_sym_solve(const double *A,
     R[1] = M[4]*tmp[1] + M[7]*tmp[2];
     R[2] = M[8]*tmp[2];
 }
+
+} /* namespace apriltag */
 
 #endif

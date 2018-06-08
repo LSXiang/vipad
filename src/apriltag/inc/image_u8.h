@@ -35,6 +35,8 @@ either expressed or implied, of the Regents of The University of Michigan.
 
 #include <stdint.h>
 
+namespace apriltag {
+
 typedef struct image_u8 image_u8_t;
 struct image_u8
 {
@@ -92,5 +94,7 @@ void image_u8_destroy(image_u8_t *im);
 // value 'pad' is inserted instead. The geometric center of the output
 // image corresponds to the geometric center of the input image.
 image_u8_t *image_u8_rotate(const image_u8_t *in, double rad, uint8_t pad);
+
+} /* namespace apriltag */
 
 #endif

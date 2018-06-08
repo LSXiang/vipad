@@ -36,6 +36,8 @@ either expressed or implied, of the Regents of The University of Michigan.
 #include "matd.h"
 #include "zarray.h"
 
+namespace apriltag {
+
     /** Given a 3x3 homography matrix and the focal lengths of the
      * camera, compute the pose of the tag. The focal lengths should
      * be given in pixels. For example, if the camera's focal length
@@ -179,5 +181,7 @@ static inline void homography_project(const matd_t *H, double x, double y, doubl
 // // [ 0  0 -1  0 ]
 // 
 // matd_t *homography_to_model_view(const matd_t *H, double F, double G, double A, double B, double C, double D);
+
+} /* namespace apriltag */
 
 #endif

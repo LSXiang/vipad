@@ -35,7 +35,7 @@ either expressed or implied, of the Regents of The University of Michigan.
 #include <assert.h>
 #include <stdio.h>
 
-// #include "common/doubles.h"
+namespace apriltag {
 
 /** SVD 2x2.
 
@@ -266,3 +266,6 @@ void svd_sym_singular_values(double A00, double A01, double A11,
     *Lmin = fmin(e, f);
     *Lmax = fmax(e, f);
 }
+
+} /* namespace apriltag */
+

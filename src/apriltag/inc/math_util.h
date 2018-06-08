@@ -40,6 +40,8 @@ either expressed or implied, of the Regents of The University of Michigan.
 #include <assert.h>
 #include <string.h> // memcpy
 
+namespace apriltag {
+
 #ifndef M_TWOPI
 # define M_TWOPI       6.2831853071795862319959  /* 2*pi */
 #endif
@@ -208,5 +210,7 @@ static inline int dblcmp (double d1, double d2)
     else
         return  0;
 }
+
+} /* namespace apriltag */
 
 #endif

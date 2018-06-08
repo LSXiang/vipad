@@ -38,6 +38,8 @@ either expressed or implied, of the Regents of The University of Michigan.
 #include "g2d.h"
 #include "math_util.h"
 
+namespace apriltag {
+
 double g2d_distance(const double a[2], const double b[2])
 {
     return sqrtf(sq(a[0]-b[0]) + sq(a[1]-b[1]));
@@ -913,3 +915,8 @@ double p[][2] =  { { 0, 0},
      }
 }
 #endif
+
+
+} /* namespace apriltag */
+
+
