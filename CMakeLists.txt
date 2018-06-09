@@ -30,10 +30,9 @@ find_package(OpenCV REQUIRED)
 # include header file path 
 include_directories(
     ${OpenCV_INCLUDE_DIRS}
-    ${PROJECT_SOURCE_DIR}/src/common
     ${PROJECT_SOURCE_DIR}/src
-    ${PROJECT_SOURCE_DIR}/src/apriltag
     ${PROJECT_SOURCE_DIR}/src/apriltag/inc
+    ${PROJECT_SOURCE_DIR}/src/ippe
     )
 
 # add subdirectories
