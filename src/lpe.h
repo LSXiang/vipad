@@ -69,12 +69,83 @@ public:
     ~LocalPositionEstimation();
     
     /* initialize */
-    init();
+    void init();
     
     /* estimate local position */
-    estimateLocalPosition();
+    void estimateLocalPosition();
     
 private:
+    /**
+     * @brief conversion quaternion to rotation matrix 
+     * 
+     * @param q quaternion (in)
+     * @param R rotation matrix (out)
+     */
+    void _quaternion2rotationMatrix(const Quaternion &q, apriltag::matd_t* &R);
+    
+    /**
+     * @brief conversion rotation matrix to quaternion
+     * 
+     * @param R rotation matrix (in)
+     * @param q quaternion (out)
+     */
+    void _rotationMatrix2quaternion(const apriltag::matd_t *R, Quaternion &q);
+    
+    /**
+     * @brief get euler roll angle
+     * 
+     * @param q quaternion
+     * @return euler roll angle
+     */
+    float _get_euler_roll(const Quaternion &q) const;
+    /**
+     * @brief get euler roll angle
+     * 
+     * @param R rotation matrix
+     * @return euler roll angle
+     */
+    float _get_euler_roll(const apriltag::matd_t *R) const;
+    
+    /**
+     * @brief get euler pitch angle
+     * 
+     * @param q quaternion
+     * @return euler pitch angle
+     */
+    float _get_euler_pitch(const Quaternion &q) const;
+    /**
+     * @brief get euler pitch angle
+     * 
+     * @param R rotation matrix
+     * @return euler pitch angle
+     */
+    float _get_euler_pitch(const apriltag::matd_t *R) const;
+    
+    
+    /**
+     * @brief get euler yaw angle
+     * 
+     * @param q quaternion
+     * @return euler yaw angle
+     */
+    float _get_euler_yaw(const Quaternion &q) const;
+    /**
+     * @brief get euler yaw angle
+     * 
+     * @param R rotation matrix
+     * @return euler yaw angle
+     */
+    float _get_euler_yaw(const apriltag::matd_t *R) const;
+    
+    /**
+     * @brief conversion euler angel to rotation matrix
+     * 
+     * @param roll euler roll angle
+     * @param pitch euler pitch angle
+     * @param yaw euler yaw angle
+     * @param R rotation matrix
+     */
+    void _eulerAngel2rotationMatrix(const float roll, const float pitch, const float yaw, apriltag::matd_t* &R);
     
     apriltag::apriltag_family_t *_marker_family;
     apriltag::apriltag_detector_t *_marker_detector;
