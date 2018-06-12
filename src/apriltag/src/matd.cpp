@@ -58,18 +58,20 @@ matd_t *matd_create(int rows, int cols)
     if (rows == 0 || cols == 0)
         return matd_create_scalar(0);
 
-    matd_t *m = (matd_t *)apriltagCalloc(1, sizeof(matd_t) + (rows*cols*sizeof(double)));
+    matd_t *m = (matd_t *)apriltagCalloc(1, sizeof(matd_t));
     m->nrows = rows;
     m->ncols = cols;
+    m->data = (double *)apriltagCalloc(1, rows*cols*sizeof(double));
 
     return m;
 }
 
 matd_t *matd_create_scalar(TYPE v)
 {
-    matd_t *m = (matd_t *)apriltagCalloc(1, sizeof(matd_t) + sizeof(double));
+    matd_t *m = (matd_t *)apriltagCalloc(1, sizeof(matd_t));
     m->nrows = 0;
     m->ncols = 0;
+    m->data = (double *)apriltagCalloc(1, sizeof(double));
     m->data[0] = v;
 
     return m;
@@ -232,6 +234,7 @@ void matd_destroy(matd_t *m)
         return;
 
     assert(m != NULL);
+    apriltagFree(m->data);
     apriltagFree(m);
 }
 
