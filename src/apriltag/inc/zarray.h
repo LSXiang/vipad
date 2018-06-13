@@ -372,18 +372,6 @@ static inline void zarray_map(zarray_t *za, void (*f)(void*))
 }
 
 /**
- * Calls the supplied function for every element in the array in index order.
- * HOWEVER values are passed to the function, not pointers to values. In the
- * case where the zarray stores object pointers, zarray_vmap allows you to
- * pass in the object's destroy function (or free) directly. Can only be used
- * with zarray's which contain pointer data. The map function should have the
- * following format:
- *
- * void map_function(element_type *element)
- */
-    void zarray_vmap(zarray_t *za, void (*f)());
-
-/**
  * Removes all elements from the array and sets its size to zero. Pointers to
  * any data elements obtained i.e. by zarray_get_volatile() will no longer be
  * valid.
