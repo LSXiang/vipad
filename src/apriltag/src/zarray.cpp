@@ -39,16 +39,16 @@ either expressed or implied, of the Regents of The University of Michigan.
 
 namespace apriltag {
 
-int zstrcmp(const void * a_pp, const void * b_pp)
-{
-    assert(a_pp != NULL);
-    assert(b_pp != NULL);
-
-    char * a = (char *)*(void**)a_pp;
-    char * b = (char *)*(void**)b_pp;
-
-    return strcmp(a,b);
-}
+// int zstrcmp(const void * a_pp, const void * b_pp)
+// {
+//     assert(a_pp != NULL);
+//     assert(b_pp != NULL);
+// 
+//     char * a = (char *)*(void**)a_pp;
+//     char * b = (char *)*(void**)b_pp;
+// 
+//     return strcmp(a,b);
+// }
 
 // void zarray_vmap(zarray_t *za, void (*f)())
 // {

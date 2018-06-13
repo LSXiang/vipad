@@ -425,9 +425,6 @@ static inline int zarray_contains(const zarray_t *za, const void *p)
  * element is 'greater than' the second. The function should have the following format:
  *
  * int comparison_function(const element_type *first, const element_type *second)
- *
- * zstrcmp() can be used as the comparison function for string elements, which
- * will call strcmp() internally.
  */
 static inline void zarray_sort(zarray_t *za, int (*compar)(const void*, const void*))
 {
@@ -443,7 +440,7 @@ static inline void zarray_sort(zarray_t *za, int (*compar)(const void*, const vo
  * A comparison function for comparing strings which can be used by zarray_sort()
  * to sort arrays with char* elements.
  */
-    int zstrcmp(const void * a_pp, const void * b_pp);
+//     int zstrcmp(const void * a_pp, const void * b_pp);
 
 /**
   * Find the index of an element, or return -1 if not found. Remember that p is
