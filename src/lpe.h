@@ -30,7 +30,7 @@
  */
 
 /**
- * This Local Position Estimatiom (LPE) is a way that used visual marker and IMU data 
+ * This Local Position Estimation (LPE) is a way that used visual marker and IMU data 
  * to accurately compute real-time local position for camera. 
  */
 
@@ -38,6 +38,7 @@
 #define __LOCAT_POSITION_ESTIMATION__
 
 #include "apriltag.h"
+#include "tag_family.h"
 #include "ippe.h"
 
 namespace vipad {
@@ -48,6 +49,8 @@ struct localPosition
     float x;    /* unit: meter */
     float y;    /* unit: meter */
     float z;    /* unit: meter*/
+    int id;
+    uint32_t tags_num;
 };
 
 struct Quaternion
@@ -58,21 +61,47 @@ struct Quaternion
     float z;    /* Quaternion component 4, z (0 in null-rotation) */
 };
 
+/**
+ * The angle between the camera and the flight controller head
+ * (clockwise rotation of the camera to the flight control head coincident angle)
+ */
+enum cam2droneRotation
+{
+	ClockwiseAngle_0,
+	ClockwiseAngle_90,
+	ClockwiseAngle_180,
+	ClockwiseAngle_270,
+	ClockwiseAngle360
+};
+
+struct lpe_params
+{
+	uint8_t *input;
+	uint32_t width;
+	uint32_t height;
+
+	double fx, fy, cx, cy;
+	double k1, k2, p1, p2, k3;
+
+	cam2droneRotation angle;
+	Quaternion *q;
+
+	localPosition *locat;
+
+	enum apriltag::tag_family_type tag_type;
+	float marker_length;
+};
+
 class LocalPositionEstimation
 {
 public:
-    typedef LocalPositionEstimation* ptr;
-    
     /* Constructor */
-    LocalPositionEstimation();
+    LocalPositionEstimation(void *param);
     /* Destructor */
-    ~LocalPositionEstimation();
-    
-    /* initialize */
-    void init();
-    
+    ~LocalPositionEstimation(void);
+
     /* estimate local position */
-    void estimateLocalPosition();
+    void estimateLocalPosition(void);
     
 private:
     /**
@@ -149,6 +178,10 @@ private:
     
     apriltag::apriltag_family_t *_marker_family;
     apriltag::apriltag_detector_t *_marker_detector;
+
+    apriltag::matd_t *_camera_matrix, *_dist_param;
+
+    struct lpe_params *_param;
 };
 
 

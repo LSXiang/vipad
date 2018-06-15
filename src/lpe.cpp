@@ -32,12 +32,217 @@
 #include <iostream>
 #include <cmath>
 #include <assert.h>
+#include <limits.h>
 
 #include "lpe.h"
 
-namespace vipad {
+using namespace apriltag;
 
-    /**
+namespace vipad {
+    
+
+/* Constructor */
+LocalPositionEstimation::LocalPositionEstimation(void *param) :
+	_marker_family(NULL),
+	_marker_detector(NULL),
+	_camera_matrix(NULL),
+	_dist_param(NULL),
+	_param(NULL)
+{
+	_param = (struct lpe_params *)param;
+
+	_marker_family = tags_create(_param->tag_type);
+	assert(_marker_family);
+
+	_marker_detector = apriltag_detector_create();
+	assert(_marker_detector);
+	apriltag_detector_add_family(_marker_detector, _marker_family);
+
+	_marker_detector->quad_decimate = 1.0f;
+	_marker_detector->quad_sigma = 0.8f;
+	_marker_detector->refine_edges = 1;
+
+	_camera_matrix = matd_identity(3);
+	MATD_EL(_camera_matrix, 0, 0) = _param->fx;
+	MATD_EL(_camera_matrix, 0, 2) = _param->cx;
+	MATD_EL(_camera_matrix, 1, 1) = _param->fy;
+	MATD_EL(_camera_matrix, 1, 2) = _param->cy;
+
+	double dist[] = {_param->k1, _param->k2, _param->p1, _param->p2, _param->k3};
+	_dist_param = matd_create_data(1, 5, dist);
+}
+
+/* Destructor */
+LocalPositionEstimation::~LocalPositionEstimation(void)
+{
+	matd_destroy(_camera_matrix);
+	matd_destroy(_dist_param);
+	apriltag_detector_destroy(_marker_detector);
+	tags_destroy(_marker_family);
+}
+
+/* estimate local position */
+void LocalPositionEstimation::estimateLocalPosition(void)
+{
+	image_u8_t image = { static_cast<int32_t>(_param->width),
+						 static_cast<int32_t>(_param->height),
+						 static_cast<int32_t>(_param->width),
+						 _param->input
+					   };
+
+	zarray_t *detections = apriltag_detector_detect(_marker_detector, &image);
+
+	int tags_number = zarray_size(detections);
+	_param->locat->tags_num = tags_number;
+
+	printf("%d tags detected \r\n", tags_number);
+
+	/* if at least one marker detected */
+	if (tags_number > 0) {
+
+		bool update_usedId = true;
+		int index = 0;
+
+		apriltag_detection_t *det;
+
+		if (tags_number > 1) {
+			int width_boundary = image.width / 8;
+			int height_boundary = image.height / 8;
+
+			/* whether last used_id in the current image */
+			for (int i = 0; i < tags_number; i++) {
+				zarray_get(detections, i, &det);
+
+				if ((det->id == _param->locat->id) && (det->id < 900)) {
+					if ((det->c[0] > width_boundary) &&
+						(det->c[0] < image.width - width_boundary) &&
+						(det->c[1] > height_boundary) &&
+						(det->c[1] < image.height - height_boundary)) {
+
+						update_usedId = false;
+						index = i;
+					}
+					break;
+				}
+			}
+
+		} else {
+			zarray_get(detections, index, &det);
+			update_usedId = false;
+			_param->locat->id = det->id;
+		}
+
+		/* whether update trick marker id */
+		if (update_usedId) {
+			/* look for the marker at the very center of the camera's field of view */
+			unsigned int distance_square = UINT_MAX, mini_distance_square = UINT_MAX;
+			for (int i = 0; i < tags_number; i++) {
+				zarray_get(detections, i, &det);
+//				if (det->id < 900) {
+					/* compute distance for center of the marker to center of the  */
+					distance_square = std::pow(det->c[0] - image.width/2, 2) + std::pow(det->c[1] - image.height/2, 2);
+					if (distance_square < mini_distance_square) {
+						mini_distance_square = distance_square;
+						index = i;
+					}
+//				}
+			}
+
+			zarray_get(detections, index, &det);
+			_param->locat->id = det->id;
+		}
+
+//		float x_offset = .0f;
+//		float y_offset = .0f;
+//		int marker_length_scale = 1;
+//
+//		if (_param->locat->id >= 900) {
+//			/* small marker location offset. Reserve code !!!!!!!!!!!!!! */
+//			x_offset = .0f;
+//			y_offset = .0f;
+//			marker_length_scale = 1;
+//		}
+
+		/* estimate location */
+		matd_t *image_points;
+		image_points = matd_create_data(4, 2, det->p[0]);
+
+		matd_t *R = NULL, *t = NULL;
+		float reprojErr;
+
+		ippe::solvePoseOfMarker(_param->marker_length, image_points, _camera_matrix, _dist_param, R, t, reprojErr);
+
+		matd_t *R_t = matd_transpose(R);
+		_param->locat->yaw = _get_euler_yaw(R_t);
+		matd_destroy(R_t);
+		printf("camera yaw angle = %.4f rad (%.2f deg) \r\n", _param->locat->yaw, _param->locat->yaw / M_PI * 180);
+
+		if (_param->q == NULL) {
+			matd_t *t_inv = matd_op("-M'*M", R, t);
+			_param->locat->x = MATD_EL(t_inv, 0, 0);
+			_param->locat->y = MATD_EL(t_inv, 1, 0);
+			_param->locat->z = MATD_EL(t_inv, 2, 0);
+			matd_destroy(t_inv);
+
+			printf("camera local position X Y Z = %.4f, %.4f, %.4f \r\n", _param->locat->x, _param->locat->y, _param->locat->z);
+
+		} else {
+			/* Construct a new rotation matrix using the pose of the IMU data */
+			switch (_param->angle) {
+			case ClockwiseAngle_0:
+				break;
+
+			case ClockwiseAngle_90:
+				break;
+
+			case ClockwiseAngle_180:
+				break;
+
+			case ClockwiseAngle_270: {
+				float roll  = _get_euler_roll(*_param->q);
+				float pitch = _get_euler_pitch(*_param->q);
+
+				matd_t *R_inv;
+				_eulerAngel2rotationMatrix(roll < 0 ? roll + M_PI : roll - M_PI, -pitch, _param->locat->yaw, R_inv); // maybe need change!!!!!!!
+
+				matd_t *t_inv = matd_op("-M*M", R_inv, t);
+				_param->locat->x = MATD_EL(t_inv, 0, 0);
+				_param->locat->y = MATD_EL(t_inv, 1, 0);
+				_param->locat->z = MATD_EL(t_inv, 2, 0);
+
+				matd_destroy(R_inv);
+				matd_destroy(t_inv);
+				}
+				break;
+
+			case ClockwiseAngle360:
+				break;
+
+			default: {
+				printf("Warning: Does not support this rotation angle/ \r\n");
+				matd_t *t_inv = matd_op("-M'*M", R, t);
+				_param->locat->x = MATD_EL(t_inv, 0, 0);
+				_param->locat->y = MATD_EL(t_inv, 1, 0);
+				_param->locat->z = MATD_EL(t_inv, 2, 0);
+				matd_destroy(t_inv);
+				}
+				break;
+			}
+
+			printf("camera local position X Y Z = %.4f, %.4f, %.4f \r\n", _param->locat->x, _param->locat->y, _param->locat->z);
+		}
+
+		matd_destroy(image_points);
+		matd_destroy(R);
+		matd_destroy(t);
+	}
+	
+    zarray_destroy(detections);
+    
+    std::cout << std::endl;
+}
+
+/**
  * FUNCTION: _quaternion2rotationMatrix
  * 
  * conversion quaternion to rotation matrix
