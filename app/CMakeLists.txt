@@ -15,4 +15,5 @@ target_link_libraries(locationEstimation
     ${OpenCV_LIBS}
     AprilTag_lib
     ippe_lib
+    vipad_lib
     )
