@@ -561,15 +561,15 @@ float quad_decode(apriltag_family_t *family, image_u8_t *im, struct quad *quad, 
     return fmin(white_score / white_score_count, black_score / black_score_count);
 }
 
-double score_decodability(apriltag_family_t *family, image_u8_t *im, struct quad *quad, void *user)
-{
-    struct quick_decode_entry entry;
-
-    float decision_margin = quad_decode(family, im, quad, &entry, NULL);
-
-    // hamming trumps decision margin; maximum value for decision_margin is 255.
-    return decision_margin - entry.hamming*1000;
-}
+// double score_decodability(apriltag_family_t *family, image_u8_t *im, struct quad *quad, void *user)
+// {
+//     struct quick_decode_entry entry;
+// 
+//     float decision_margin = quad_decode(family, im, quad, &entry, NULL);
+// 
+//     // hamming trumps decision margin; maximum value for decision_margin is 255.
+//     return decision_margin - entry.hamming*1000;
+// }
 
 static void refine_edges(apriltag_detector_t *td, image_u8_t *im_orig, struct quad *quad)
 {
