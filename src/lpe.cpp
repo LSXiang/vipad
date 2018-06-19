@@ -174,11 +174,11 @@ void LocalPositionEstimation::estimateLocalPosition(void)
 
 		matd_t *R_t = matd_transpose(R);
 		_param->locat->yaw = _get_euler_yaw(R_t);
-		matd_destroy(R_t);
+		
 		printf("camera yaw angle = %.4f rad (%.2f deg) \r\n", _param->locat->yaw, _param->locat->yaw / M_PI * 180);
 
 		if (_param->q == NULL) {
-			matd_t *t_inv = matd_op("-M'*M", R, t);
+			matd_t *t_inv = matd_op("-M*M", R_t, t);
 			_param->locat->x = MATD_EL(t_inv, 0, 0);
 			_param->locat->y = MATD_EL(t_inv, 1, 0);
 			_param->locat->z = MATD_EL(t_inv, 2, 0);
@@ -220,7 +220,7 @@ void LocalPositionEstimation::estimateLocalPosition(void)
 
 			default: {
 				printf("Warning: Does not support this rotation angle/ \r\n");
-				matd_t *t_inv = matd_op("-M'*M", R, t);
+				matd_t *t_inv = matd_op("-M*M", R_t, t);
 				_param->locat->x = MATD_EL(t_inv, 0, 0);
 				_param->locat->y = MATD_EL(t_inv, 1, 0);
 				_param->locat->z = MATD_EL(t_inv, 2, 0);
@@ -234,6 +234,7 @@ void LocalPositionEstimation::estimateLocalPosition(void)
 
 		matd_destroy(image_points);
 		matd_destroy(R);
+        matd_destroy(R_t);
 		matd_destroy(t);
 	}
 	
