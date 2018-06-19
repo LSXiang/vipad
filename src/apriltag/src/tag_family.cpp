@@ -3832,6 +3832,7 @@ const uint64_t *tags_ptr[] =
 
 const uint32_t wide[] = {4, 5, 5, 6, 6, 6};
 const uint32_t hamming[] = {5, 7, 9, 7, 10, 11};
+const uint32_t ncodes[] = {30, 242, 35, 512, 2320, 587};
 
 /**
  * tags_create function
@@ -3843,7 +3844,7 @@ apriltag_family_t *tags_create(enum tag_family_type type)
    tf->black_border = 1;
    tf->d = wide[type];
    tf->h = hamming[type];
-   tf->ncodes = 30;
+   tf->ncodes = ncodes[type];
    tf->codes = (uint64_t *)tags_ptr[type];
 
    return tf;
