@@ -295,8 +295,16 @@ int main(int argc, char **argv)
         est.estimateLocalPosition();
 
         imshow("Tag Detections", frame);
-        if (waitKey(1) == 27)
+        
+        int key = waitKey(1);
+        if (key == 27)
             break;
+        
+        if (key == 'c') {
+            imwrite("marker.png", gray);
+            CvMat mat = gray;
+            cvSave("marker.yaml", &mat);
+        }
     }
     
     return 0;
