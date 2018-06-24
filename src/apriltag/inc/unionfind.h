@@ -117,11 +117,11 @@ static inline uint32_t unionfind_get_representative(unionfind_t *uf, uint32_t id
     return root;
 }
 
-static inline uint32_t unionfind_get_set_size(unionfind_t *uf, uint32_t id)
-{
-    uint32_t repid = unionfind_get_representative(uf, id);
-    return uf->data[repid].size;
-}
+// static inline uint32_t unionfind_get_set_size(unionfind_t *uf, uint32_t id)
+// {
+//     uint32_t repid = unionfind_get_representative(uf, id);
+//     return uf->data[repid].size;
+// }
 
 static inline uint32_t unionfind_connect(unionfind_t *uf, uint32_t aid, uint32_t bid)
 {
