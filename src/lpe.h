@@ -49,8 +49,8 @@ struct localPosition
     float x;    /* unit: meter */
     float y;    /* unit: meter */
     float z;    /* unit: meter*/
-    int id;
-    uint32_t tags_num;
+    int id;     /* using the this ID number to local position estimation now */
+    uint32_t tags_num; /* in this frame, have n number be detect */
 };
 
 struct Quaternion
