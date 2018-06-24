@@ -123,17 +123,17 @@ struct apriltag_detector
     ///////////////////////////////////////////////////////////////
     // User-configurable parameters.
 
-    // detection of quads can be done on a lower-resolution image,
-    // improving speed at a cost of pose accuracy and a slight
-    // decrease in detection rate. Decoding the binary payload is
-    // still done at full resolution. .
-    float quad_decimate;
+//     // detection of quads can be done on a lower-resolution image,
+//     // improving speed at a cost of pose accuracy and a slight
+//     // decrease in detection rate. Decoding the binary payload is
+//     // still done at full resolution. .
+//     float quad_decimate;
 
-    // What Gaussian blur should be applied to the segmented image
-    // (used for quad detection?)  Parameter is the standard deviation
-    // in pixels.  Very noisy images benefit from non-zero values
-    // (e.g. 0.8).
-    float quad_sigma;
+//     // What Gaussian blur should be applied to the segmented image
+//     // (used for quad detection?)  Parameter is the standard deviation
+//     // in pixels.  Very noisy images benefit from non-zero values
+//     // (e.g. 0.8).
+//     float quad_sigma;
 
     // When non-zero, the edges of the each quad are adjusted to "snap
     // to" strong gradients nearby. This is useful when decimation is

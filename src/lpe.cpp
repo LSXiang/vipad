@@ -58,8 +58,8 @@ LocalPositionEstimation::LocalPositionEstimation(void *param) :
 	assert(_marker_detector);
 	apriltag_detector_add_family(_marker_detector, _marker_family);
 
-	_marker_detector->quad_decimate = 1.0f;
-	_marker_detector->quad_sigma = 0.8f;
+// 	_marker_detector->quad_decimate = 1.0f;
+// 	_marker_detector->quad_sigma = 0.8f;
 	_marker_detector->refine_edges = 1;
 
 	_camera_matrix = matd_identity(3);

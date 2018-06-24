@@ -396,8 +396,8 @@ apriltag_detector_t *apriltag_detector_create()
 {
     apriltag_detector_t *td = (apriltag_detector_t*) apriltagCalloc(1, sizeof(apriltag_detector_t));
 
-    td->quad_decimate = 1.0;
-    td->quad_sigma = 0.0;
+//     td->quad_decimate = 1.0;
+//     td->quad_sigma = 0.0;
 
     td->qtp.max_nmaxima = 10;
     td->qtp.min_cluster_pixels = 5;
@@ -670,7 +670,8 @@ static void refine_edges(apriltag_detector_t *td, image_u8_t *im_orig, struct qu
             // search on another pixel in the first place. Likewise,
             // for very small tags, we don't want the range to be too
             // big.
-            double range = td->quad_decimate + 1;
+//             double range = td->quad_decimate + 1;
+            double range = 1.0 + 1;
 
             // XXX tunable step size.
             for (double n = -range; n <= range; n +=  0.25) {
@@ -803,75 +804,75 @@ zarray_t *apriltag_detector_detect(apriltag_detector_t *td, image_u8_t *im_orig)
     ///////////////////////////////////////////////////////////
     // Step 1. Detect quads according to requested image decimation
     // and blurring parameters.
-    image_u8_t *quad_im = im_orig;
-    if (td->quad_decimate > 1) {
-        quad_im = image_u8_decimate(im_orig, td->quad_decimate);
-    }
-
-    if (td->quad_sigma != 0) {
-        // compute a reasonable kernel width by figuring that the
-        // kernel should go out 2 std devs.
-        //
-        // max sigma          ksz
-        // 0.499              1  (disabled)
-        // 0.999              3
-        // 1.499              5
-        // 1.999              7
-
-        float sigma = fabsf((float) td->quad_sigma);
-
-        int ksz = 4 * sigma; // 2 std devs in each direction
-        if ((ksz & 1) == 0)
-            ksz++;
-
-        if (ksz > 1) {
-
-            if (td->quad_sigma > 0) {
-                // Apply a blur
-                image_u8_gaussian_blur(quad_im, sigma, ksz);
-            } else {
-                // SHARPEN the image by subtracting the low frequency components.
-                image_u8_t *orig = image_u8_copy(quad_im);
-                image_u8_gaussian_blur(quad_im, sigma, ksz);
-
-                for (int y = 0; y < orig->height; y++) {
-                    for (int x = 0; x < orig->width; x++) {
-                        int vorig = orig->buf[y*orig->stride + x];
-                        int vblur = quad_im->buf[y*quad_im->stride + x];
-
-                        int v = 2*vorig - vblur;
-                        if (v < 0)
-                            v = 0;
-                        if (v > 255)
-                            v = 255;
-
-                        quad_im->buf[y*quad_im->stride + x] = (uint8_t) v;
-                    }
-                }
-                image_u8_destroy(orig);
-            }
-        }
-    }
+//     image_u8_t *quad_im = im_orig;
+//     if (td->quad_decimate > 1) {
+//         quad_im = image_u8_decimate(im_orig, td->quad_decimate);
+//     }
+// 
+//     if (td->quad_sigma != 0) {
+//         // compute a reasonable kernel width by figuring that the
+//         // kernel should go out 2 std devs.
+//         //
+//         // max sigma          ksz
+//         // 0.499              1  (disabled)
+//         // 0.999              3
+//         // 1.499              5
+//         // 1.999              7
+// 
+//         float sigma = fabsf((float) td->quad_sigma);
+// 
+//         int ksz = 4 * sigma; // 2 std devs in each direction
+//         if ((ksz & 1) == 0)
+//             ksz++;
+// 
+//         if (ksz > 1) {
+// 
+//             if (td->quad_sigma > 0) {
+//                 // Apply a blur
+//                 image_u8_gaussian_blur(quad_im, sigma, ksz);
+//             } else {
+//                 // SHARPEN the image by subtracting the low frequency components.
+//                 image_u8_t *orig = image_u8_copy(quad_im);
+//                 image_u8_gaussian_blur(quad_im, sigma, ksz);
+// 
+//                 for (int y = 0; y < orig->height; y++) {
+//                     for (int x = 0; x < orig->width; x++) {
+//                         int vorig = orig->buf[y*orig->stride + x];
+//                         int vblur = quad_im->buf[y*quad_im->stride + x];
+// 
+//                         int v = 2*vorig - vblur;
+//                         if (v < 0)
+//                             v = 0;
+//                         if (v > 255)
+//                             v = 255;
+// 
+//                         quad_im->buf[y*quad_im->stride + x] = (uint8_t) v;
+//                     }
+//                 }
+//                 image_u8_destroy(orig);
+//             }
+//         }
+//     }
 
 //    zarray_t *quads = apriltag_quad_gradient(td, im_orig);
-    zarray_t *quads = apriltag_quad_thresh(td, quad_im);
+    zarray_t *quads = apriltag_quad_thresh(td, im_orig);
 
-    // adjust centers of pixels so that they correspond to the
-    // original full-resolution image.
-    if (td->quad_decimate > 1) {
-        for (int i = 0; i < zarray_size(quads); i++) {
-            struct quad *q;
-            zarray_get_volatile(quads, i, &q);
-
-            for (int i = 0; i < 4; i++) {
-                q->p[i][0] *= td->quad_decimate;
-                q->p[i][1] *= td->quad_decimate;
-            }
-        }
-    }
-
-    if (quad_im != im_orig)
-        image_u8_destroy(quad_im);
+//     // adjust centers of pixels so that they correspond to the
+//     // original full-resolution image.
+//     if (td->quad_decimate > 1) {
+//         for (int i = 0; i < zarray_size(quads); i++) {
+//             struct quad *q;
+//             zarray_get_volatile(quads, i, &q);
+// 
+//             for (int i = 0; i < 4; i++) {
+//                 q->p[i][0] *= td->quad_decimate;
+//                 q->p[i][1] *= td->quad_decimate;
+//             }
+//         }
+//     }
+// 
+//     if (quad_im != im_orig)
+//         image_u8_destroy(quad_im);
 
     zarray_t *detections = zarray_create(sizeof(apriltag_detection_t*));
 
