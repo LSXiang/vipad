@@ -46,6 +46,11 @@ static inline void *apriltagCalloc(size_t _nmemb, size_t _size)
     return calloc(_nmemb, _size);
 }
 
+static inline void *apriltagRealloc(void *_ptr, size_t _new_size)
+{
+    return realloc(_ptr, _new_size);
+}
+
 static inline void apriltagFree(void *_ptr)
 {
     free(_ptr);
