@@ -161,136 +161,191 @@ struct quad *quad_copy(struct quad *quad)
     return q;
 }
 
-void quick_decode_add(struct quick_decode *qd, uint64_t code, int id, int hamming)
+// void quick_decode_add(struct quick_decode *qd, uint64_t code, int id, int hamming)
+// {
+//     uint32_t bucket = code % qd->nentries;
+// 
+//     while (qd->entries[bucket].rcode != UINT64_MAX) {
+//         bucket = (bucket + 1) % qd->nentries;
+//     }
+// 
+//     qd->entries[bucket].rcode = code;
+//     qd->entries[bucket].id = id;
+//     qd->entries[bucket].hamming = hamming;
+// }
+
+// void quick_decode_uninit(apriltag_family_t *fam)
+// {
+//     if (!fam->impl)
+//         return;
+// 
+//     struct quick_decode *qd = (struct quick_decode*) fam->impl;
+//     apriltagFree(qd->entries);
+//     apriltagFree(qd);
+//     fam->impl = NULL;
+// }
+
+// void quick_decode_init(apriltag_family_t *family, int maxhamming)
+// {
+//     assert(family->impl == NULL);
+//     assert(family->ncodes < 65535);
+// 
+//     struct quick_decode *qd = (struct quick_decode *)apriltagCalloc(1, sizeof(struct quick_decode));
+//     int capacity = family->ncodes;
+// 
+//     int nbits = family->d * family->d;
+// 
+//     if (maxhamming >= 1)
+//         capacity += family->ncodes * nbits;
+// 
+//     if (maxhamming >= 2)
+//         capacity += family->ncodes * nbits * (nbits-1);
+// 
+//     if (maxhamming >= 3)
+//         capacity += family->ncodes * nbits * (nbits-1) * (nbits-2);
+// 
+//     qd->nentries = capacity * 3;
+// 
+// //    printf("capacity %d, size: %.0f kB\n",
+// //           capacity, qd->nentries * sizeof(struct quick_decode_entry) / 1024.0);
+// 
+//     qd->entries = (quick_decode_entry *)apriltagCalloc(qd->nentries, sizeof(struct quick_decode_entry));
+//     if (qd->entries == NULL) {
+//         printf("apriltag.c: failed to allocate hamming decode table. Reduce max hamming size.\n");
+//         exit(-1);
+//     }
+// 
+//     for (int i = 0; i < qd->nentries; i++)
+//         qd->entries[i].rcode = UINT64_MAX;
+// 
+//     for (int i = 0; i < family->ncodes; i++) {
+//         uint64_t code = family->codes[i];
+// 
+//         // add exact code (hamming = 0)
+//         quick_decode_add(qd, code, i, 0);
+// 
+//         if (maxhamming >= 1) {
+//             // add hamming 1
+//             for (int j = 0; j < nbits; j++)
+//                 quick_decode_add(qd, code ^ (1L << j), i, 1);
+//         }
+// 
+//         if (maxhamming >= 2) {
+//             // add hamming 2
+//             for (int j = 0; j < nbits; j++)
+//                 for (int k = 0; k < j; k++)
+//                     quick_decode_add(qd, code ^ (1L << j) ^ (1L << k), i, 2);
+//         }
+// 
+//         if (maxhamming >= 3) {
+//             // add hamming 3
+//             for (int j = 0; j < nbits; j++)
+//                 for (int k = 0; k < j; k++)
+//                     for (int m = 0; m < k; m++)
+//                         quick_decode_add(qd, code ^ (1L << j) ^ (1L << k) ^ (1L << m), i, 3);
+//         }
+// 
+//         if (maxhamming > 3) {
+//             printf("apriltag.c: maxhamming beyond 3 not supported\n");
+//         }
+//     }
+// 
+//     family->impl = qd;
+// 
+//     if (0) {
+//         int longest_run = 0;
+//         int run = 0;
+//         int run_sum = 0;
+//         int run_count = 0;
+// 
+//         // This accounting code doesn't check the last possible run that
+//         // occurs at the wrap-around. That's pretty insignificant.
+//         for (int i = 0; i < qd->nentries; i++) {
+//             if (qd->entries[i].rcode == UINT64_MAX) {
+//                 if (run > 0) {
+//                     run_sum += run;
+//                     run_count ++;
+//                 }
+//                 run = 0;
+//             } else {
+//                 run ++;
+//                 longest_run = imax(longest_run, run);
+//             }
+//         }
+// 
+//         printf("quick decode: longest run: %d, average run %.3f\n", longest_run, 1.0 * run_sum / run_count);
+//     }
+// }
+
+// http://en.wikipedia.org/wiki/Hamming_weight
+
+//types and constants used in the functions below
+//uint64_t is an unsigned 64-bit integer variable type (defined in C99 version of C language)
+const uint64_t m1  = 0x5555555555555555; //binary: 0101...
+const uint64_t m2  = 0x3333333333333333; //binary: 00110011..
+const uint64_t m4  = 0x0f0f0f0f0f0f0f0f; //binary:  4 zeros,  4 ones ...
+const uint64_t m8  = 0x00ff00ff00ff00ff; //binary:  8 zeros,  8 ones ...
+const uint64_t m16 = 0x0000ffff0000ffff; //binary: 16 zeros, 16 ones ...
+const uint64_t m32 = 0x00000000ffffffff; //binary: 32 zeros, 32 ones
+const uint64_t hff = 0xffffffffffffffff; //binary: all ones
+const uint64_t h01 = 0x0101010101010101; //the sum of 256 to the power of 0,1,2,3...
+
+//This is a naive implementation, shown for comparison,
+//and to help in understanding the better functions.
+//This algorithm uses 24 arithmetic operations (shift, add, and).
+int popcount64a(uint64_t x)
 {
-    uint32_t bucket = code % qd->nentries;
-
-    while (qd->entries[bucket].rcode != UINT64_MAX) {
-        bucket = (bucket + 1) % qd->nentries;
-    }
-
-    qd->entries[bucket].rcode = code;
-    qd->entries[bucket].id = id;
-    qd->entries[bucket].hamming = hamming;
+    x = (x & m1 ) + ((x >>  1) & m1 ); //put count of each  2 bits into those  2 bits
+    x = (x & m2 ) + ((x >>  2) & m2 ); //put count of each  4 bits into those  4 bits
+    x = (x & m4 ) + ((x >>  4) & m4 ); //put count of each  8 bits into those  8 bits
+    x = (x & m8 ) + ((x >>  8) & m8 ); //put count of each 16 bits into those 16 bits
+    x = (x & m16) + ((x >> 16) & m16); //put count of each 32 bits into those 32 bits
+    x = (x & m32) + ((x >> 32) & m32); //put count of each 64 bits into those 64 bits
+    return x;
 }
 
-void quick_decode_uninit(apriltag_family_t *fam)
+//This uses fewer arithmetic operations than any other known
+//implementation on machines with slow multiplication.
+//This algorithm uses 17 arithmetic operations.
+int popcount64b(uint64_t x)
 {
-    if (!fam->impl)
-        return;
-
-    struct quick_decode *qd = (struct quick_decode*) fam->impl;
-    apriltagFree(qd->entries);
-    apriltagFree(qd);
-    fam->impl = NULL;
+    x -= (x >> 1) & m1;             //put count of each 2 bits into those 2 bits
+    x = (x & m2) + ((x >> 2) & m2); //put count of each 4 bits into those 4 bits
+    x = (x + (x >> 4)) & m4;        //put count of each 8 bits into those 8 bits
+    x += x >>  8;  //put count of each 16 bits into their lowest 8 bits
+    x += x >> 16;  //put count of each 32 bits into their lowest 8 bits
+    x += x >> 32;  //put count of each 64 bits into their lowest 8 bits
+    return x & 0x7f;
 }
 
-void quick_decode_init(apriltag_family_t *family, int maxhamming)
+//This uses fewer arithmetic operations than any other known
+//implementation on machines with fast multiplication.
+//This algorithm uses 12 arithmetic operations, one of which is a multiply.
+int popcount64c(uint64_t x)
 {
-    assert(family->impl == NULL);
-    assert(family->ncodes < 65535);
-
-    struct quick_decode *qd = (struct quick_decode *)apriltagCalloc(1, sizeof(struct quick_decode));
-    int capacity = family->ncodes;
-
-    int nbits = family->d * family->d;
-
-    if (maxhamming >= 1)
-        capacity += family->ncodes * nbits;
-
-    if (maxhamming >= 2)
-        capacity += family->ncodes * nbits * (nbits-1);
-
-    if (maxhamming >= 3)
-        capacity += family->ncodes * nbits * (nbits-1) * (nbits-2);
-
-    qd->nentries = capacity * 3;
-
-//    printf("capacity %d, size: %.0f kB\n",
-//           capacity, qd->nentries * sizeof(struct quick_decode_entry) / 1024.0);
-
-    qd->entries = (quick_decode_entry *)apriltagCalloc(qd->nentries, sizeof(struct quick_decode_entry));
-    if (qd->entries == NULL) {
-        printf("apriltag.c: failed to allocate hamming decode table. Reduce max hamming size.\n");
-        exit(-1);
-    }
-
-    for (int i = 0; i < qd->nentries; i++)
-        qd->entries[i].rcode = UINT64_MAX;
-
-    for (int i = 0; i < family->ncodes; i++) {
-        uint64_t code = family->codes[i];
-
-        // add exact code (hamming = 0)
-        quick_decode_add(qd, code, i, 0);
-
-        if (maxhamming >= 1) {
-            // add hamming 1
-            for (int j = 0; j < nbits; j++)
-                quick_decode_add(qd, code ^ (1L << j), i, 1);
-        }
-
-        if (maxhamming >= 2) {
-            // add hamming 2
-            for (int j = 0; j < nbits; j++)
-                for (int k = 0; k < j; k++)
-                    quick_decode_add(qd, code ^ (1L << j) ^ (1L << k), i, 2);
-        }
-
-        if (maxhamming >= 3) {
-            // add hamming 3
-            for (int j = 0; j < nbits; j++)
-                for (int k = 0; k < j; k++)
-                    for (int m = 0; m < k; m++)
-                        quick_decode_add(qd, code ^ (1L << j) ^ (1L << k) ^ (1L << m), i, 3);
-        }
-
-        if (maxhamming > 3) {
-            printf("apriltag.c: maxhamming beyond 3 not supported\n");
-        }
-    }
-
-    family->impl = qd;
-
-    if (0) {
-        int longest_run = 0;
-        int run = 0;
-        int run_sum = 0;
-        int run_count = 0;
-
-        // This accounting code doesn't check the last possible run that
-        // occurs at the wrap-around. That's pretty insignificant.
-        for (int i = 0; i < qd->nentries; i++) {
-            if (qd->entries[i].rcode == UINT64_MAX) {
-                if (run > 0) {
-                    run_sum += run;
-                    run_count ++;
-                }
-                run = 0;
-            } else {
-                run ++;
-                longest_run = imax(longest_run, run);
-            }
-        }
-
-        printf("quick decode: longest run: %d, average run %.3f\n", longest_run, 1.0 * run_sum / run_count);
-    }
+    x -= (x >> 1) & m1;             //put count of each 2 bits into those 2 bits
+    x = (x & m2) + ((x >> 2) & m2); //put count of each 4 bits into those 4 bits
+    x = (x + (x >> 4)) & m4;        //put count of each 8 bits into those 8 bits
+    return (x * h01) >> 56;  //returns left 8 bits of x + (x<<8) + (x<<16) + (x<<24) + ...
 }
+
 
 // returns an entry with hamming set to 255 if no decode was found.
 static void quick_decode_codeword(apriltag_family_t *tf, uint64_t rcode,
                                   struct quick_decode_entry *entry)
 {
-    struct quick_decode *qd = (struct quick_decode*) tf->impl;
+//     struct quick_decode *qd = (struct quick_decode*) tf->impl;
+
+    int threshold = imax(tf->h - tf->d - 1, 0);
 
     for (int ridx = 0; ridx < 4; ridx++) {
 
-        for (int bucket = rcode % qd->nentries;
-             qd->entries[bucket].rcode != UINT64_MAX;
-             bucket = (bucket + 1) % qd->nentries) {
-
-            if (qd->entries[bucket].rcode == rcode) {
-                *entry = qd->entries[bucket];
+        for (int i = 0, j = tf->ncodes; i < j; i++) {
+            int hamming = popcount64c(tf->codes[i] ^ rcode);
+            if(hamming <= threshold) {
+                entry->rcode = rcode;
+                entry->id = i;
+                entry->hamming = hamming;
                 entry->rotation = ridx;
                 return;
             }
@@ -315,7 +370,7 @@ static inline int detection_compare_function(const void *_a, const void *_b)
 
 void apriltag_detector_remove_family(apriltag_detector_t *td, apriltag_family_t *fam)
 {
-    quick_decode_uninit(fam);
+//     quick_decode_uninit(fam);
     zarray_remove_value(td->tag_families, &fam, 0);
 }
 
@@ -323,17 +378,17 @@ void apriltag_detector_add_family_bits(apriltag_detector_t *td, apriltag_family_
 {
     zarray_add(td->tag_families, &fam);
 
-    if (!fam->impl)
-        quick_decode_init(fam, bits_corrected);
+//     if (!fam->impl)
+//         quick_decode_init(fam, bits_corrected);
 }
 
 void apriltag_detector_clear_families(apriltag_detector_t *td)
 {
-    for (int i = 0; i < zarray_size(td->tag_families); i++) {
-        apriltag_family_t *fam;
-        zarray_get(td->tag_families, i, &fam);
-        quick_decode_uninit(fam);
-    }
+//     for (int i = 0; i < zarray_size(td->tag_families); i++) {
+//         apriltag_family_t *fam;
+//         zarray_get(td->tag_families, i, &fam);
+//         quick_decode_uninit(fam);
+//     }
     zarray_clear(td->tag_families);
 }
 

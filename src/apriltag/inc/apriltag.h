@@ -76,10 +76,10 @@ struct apriltag_family
 //     // a human-readable name, e.g., "tag36h11"
 //     char *name;
 
-    // some detector implementations may preprocess codes in order to
-    // accelerate decoding.  They put their data here. (Do not use the
-    // same apriltag_family instance in more than one implementation)
-    void *impl;
+//     // some detector implementations may preprocess codes in order to
+//     // accelerate decoding.  They put their data here. (Do not use the
+//     // same apriltag_family instance in more than one implementation)
+//     void *impl;
 };
 
 
