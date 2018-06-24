@@ -166,6 +166,10 @@ void LocalPositionEstimation::estimateLocalPosition(void)
 		/* estimate location */
 		matd_t *image_points;
 		image_points = matd_create_data(4, 2, det->p[0]);
+        
+//         /* ----------------test---------------- */
+//         printf("image_points : \r\n %f, %f, %f, %f, %f, %f, %f, %f \r\n", det->p[0][0], det->p[0][1], det->p[1][0], det->p[1][1], det->p[2][0], det->p[2][1], det->p[3][0], det->p[3][1]);
+//         std::cout << std::endl;
 
 		matd_t *R = NULL, *t = NULL;
 		float reprojErr;
