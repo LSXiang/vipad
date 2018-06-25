@@ -1288,9 +1288,9 @@ zarray_t *apriltag_quad_thresh(apriltag_detector_t *td, image_u8_t *im)
             DO_CONN(1, 0);
             DO_CONN(0, 1);
 
-            // do 8 connectivity
-            DO_CONN(-1, 1);
-            DO_CONN(1, 1);
+//             // do 8 connectivity
+//             DO_CONN(-1, 1);
+//             DO_CONN(1, 1);
         }
     }
 #undef DO_CONN
