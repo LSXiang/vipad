@@ -968,7 +968,12 @@ image_u8_t *threshold(apriltag_detector_t *td, image_u8_t *im)
     assert(w < 32768);
     assert(h < 32768);
 
-    image_u8_t *threshim = image_u8_create_alignment(w, h, s);
+//     image_u8_t *threshim = image_u8_create_alignment(w, h, s);
+    image_u8_t *threshim = (image_u8_t *)apriltagMalloc(sizeof(image_u8_t));
+    threshim->width = w;
+    threshim->height = h;
+    threshim->stride = s;
+    threshim->buf = (uint8_t *)apriltagMalloc(w * h);
     assert(threshim->stride == s);
 
     // The idea is to find the maximum and minimum values in a
@@ -1148,7 +1153,12 @@ image_u8_t *threshold(apriltag_detector_t *td, image_u8_t *im)
     // this is a dilate/erode deglitching scheme that does not improve
     // anything as far as I can tell.
     if (0 || td->qtp.deglitch) {
-        image_u8_t *tmp = image_u8_create(w, h);
+//         image_u8_t *tmp = image_u8_create(w, h);
+        image_u8_t *tmp = (image_u8_t *)apriltagMalloc(sizeof(image_u8_t));
+        tmp->width = w;
+        tmp->height = h;
+        tmp->stride = s;
+        tmp->buf = (uint8_t *)apriltagMalloc(w * h);
 
         for (int y = 1; y + 1 < h; y++) {
             for (int x = 1; x + 1 < w; x++) {
@@ -1178,7 +1188,9 @@ image_u8_t *threshold(apriltag_detector_t *td, image_u8_t *im)
             }
         }
 
-        image_u8_destroy(tmp);
+//         image_u8_destroy(tmp);
+        apriltagFree(tmp->buf);
+        apriltagFree(tmp);
     }
 
 //     timeprofile_stamp(td->tp, "threshold");
@@ -1283,7 +1295,9 @@ zarray_t *apriltag_quad_thresh(apriltag_detector_t *td, image_u8_t *im)
     }
 #undef DO_CONN
 
-    image_u8_destroy(threshim);
+//     image_u8_destroy(threshim);
+    apriltagFree(threshim->buf);
+    apriltagFree(threshim);
 
     ////////////////////////////////////////////////////////
     // step 3. process each connected component.
