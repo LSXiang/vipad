@@ -39,13 +39,13 @@ either expressed or implied, of the Regents of The University of Michigan.
 #include <stdio.h>
 #include <inttypes.h>
 
-#include "image_u8.h"
+// #include "image_u8.h"
 #include "zarray.h"
 #include "matd.h"
 #include "homography.h"
 #include "math_util.h"
 #include "g2d.h"
-
+#include "apriltag.h"
 #include "apriltag_math.h"
 
 namespace apriltag {

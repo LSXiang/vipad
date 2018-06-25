@@ -34,9 +34,9 @@ either expressed or implied, of the Regents of The University of Michigan.
 #define _APRILTAG_H
 
 #include <stdlib.h>
+#include <stdint.h>
 
 #include "matd.h"
-#include "image_u8.h"
 #include "zarray.h"
 
 namespace apriltag {
@@ -197,6 +197,16 @@ struct apriltag_detection
     // The corners of the tag in image pixel coordinates. These always
     // wrap counter-clock wise around the tag.
     double p[4][2];
+};
+
+typedef struct image_u8 image_u8_t;
+struct image_u8
+{
+    int32_t width;
+    int32_t height;
+    int32_t stride;
+
+    uint8_t *buf;
 };
 
 // don't forget to add a family!
