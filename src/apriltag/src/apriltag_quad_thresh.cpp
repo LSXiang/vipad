@@ -370,15 +370,17 @@ int quad_segment_maxima(apriltag_detector_t *td, zarray_t *cluster, struct line_
 
 //    printf("sz %5d, ksz %3d\n", sz, ksz);
 
-    double errs[sz];
-
+//     double errs[sz];
+    double *errs = (double *)apriltagMalloc(sz * sizeof(double));
+    
     for (int i = 0; i < sz; i++) {
         fit_line(lfps, sz, (i + sz - ksz) % sz, (i + ksz) % sz, NULL, &errs[i], NULL);
     }
 
     // apply a low-pass filter to errs
     if (1) {
-        double y[sz];
+//         double y[sz];
+        double *y = (double *)apriltagMalloc(sz * sizeof(double));
 
         // how much filter to apply?
 
@@ -399,7 +401,8 @@ int quad_segment_maxima(apriltag_detector_t *td, zarray_t *cluster, struct line_
         fsz = 2*fsz + 1;
 
         // For default values of cutoff = 0.05, sigma = 3,
-        // we have fsz = 17.
+        // we have fsz = 17.  now fsz = 7.
+//         printf("fsz %5d \r\n", fsz);
         float f[fsz];
 
         for (int i = 0; i < fsz; i++) {
@@ -416,11 +419,15 @@ int quad_segment_maxima(apriltag_detector_t *td, zarray_t *cluster, struct line_
             y[iy] = acc;
         }
 
-        memcpy(errs, y, sizeof(y));
+//         memcpy(errs, y, sizeof(y));
+        memcpy(errs, y, sz * sizeof(double));
+        apriltagFree(y);
     }
 
-    int maxima[sz];
-    double maxima_errs[sz];
+//     int maxima[sz];
+//     double maxima_errs[sz];
+    int *maxima = (int *)apriltagMalloc(sz * sizeof(int));
+    double *maxima_errs = (double *)apriltagMalloc(sz * sizeof(double));
     int nmaxima = 0;
 
     for (int i = 0; i < sz; i++) {
@@ -439,8 +446,9 @@ int quad_segment_maxima(apriltag_detector_t *td, zarray_t *cluster, struct line_
     int max_nmaxima = td->qtp.max_nmaxima;
 
     if (nmaxima > max_nmaxima) {
-        double maxima_errs_copy[nmaxima];
-        memcpy(maxima_errs_copy, maxima_errs, sizeof(maxima_errs_copy));
+//         double maxima_errs_copy[nmaxima];
+        double *maxima_errs_copy = (double *)apriltagMalloc(nmaxima * sizeof(double));
+        memcpy(maxima_errs_copy, maxima_errs, nmaxima * sizeof(double));
 
         // throw out all but the best handful of maxima. Sorts descending.
         qsort(maxima_errs_copy, nmaxima, sizeof(double), err_compare_descending);
@@ -453,7 +461,12 @@ int quad_segment_maxima(apriltag_detector_t *td, zarray_t *cluster, struct line_
             maxima[out++] = maxima[in];
         }
         nmaxima = out;
+        
+        apriltagFree(maxima_errs_copy);
     }
+    
+    apriltagFree(maxima_errs);
+    apriltagFree(errs);
 
     int best_indices[4];
     double best_error = HUGE_VALF;
@@ -510,6 +523,8 @@ int quad_segment_maxima(apriltag_detector_t *td, zarray_t *cluster, struct line_
             }
         }
     }
+    
+    apriltagFree(maxima);
 
     if (best_error == HUGE_VALF)
         return 0;
