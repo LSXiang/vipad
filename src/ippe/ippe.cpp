@@ -87,7 +87,7 @@ void ippeSolvePoseOfCentredSquare(float squareLength, matd_t* &imagePoints, matd
     homographyFromSquarePoints(undistortedPoints, halfLength, H);
     
     /* compute the Jacobian J of the homography at (0,0) */
-    double j00, j01, j10, j11, v0, v1;
+    float j00, j01, j10, j11, v0, v1;
     
     j00 = MATD_EL(H, 0, 0) - MATD_EL(H, 2, 0) * MATD_EL(H, 0, 2);
     j01 = MATD_EL(H, 0, 1) - MATD_EL(H, 2, 1) * MATD_EL(H, 0, 2);
@@ -146,20 +146,20 @@ void homographyFromSquarePoints(matd_t* &_targetPts, float halfLength, matd_t* &
     if (_H != NULL) matd_destroy(_H);
     _H = matd_create(3, 3);
     
-    double p1x = -MATD_EL(_targetPts, 0, 0);
-    double p1y = -MATD_EL(_targetPts, 0, 1);
+    float p1x = -MATD_EL(_targetPts, 0, 0);
+    float p1y = -MATD_EL(_targetPts, 0, 1);
     
-    double p2x = -MATD_EL(_targetPts, 1, 0);
-    double p2y = -MATD_EL(_targetPts, 1, 1);
+    float p2x = -MATD_EL(_targetPts, 1, 0);
+    float p2y = -MATD_EL(_targetPts, 1, 1);
     
-    double p3x = -MATD_EL(_targetPts, 2, 0);
-    double p3y = -MATD_EL(_targetPts, 2, 1);
+    float p3x = -MATD_EL(_targetPts, 2, 0);
+    float p3y = -MATD_EL(_targetPts, 2, 1);
     
-    double p4x = -MATD_EL(_targetPts, 3, 0);
-    double p4y = -MATD_EL(_targetPts, 3, 1);
+    float p4x = -MATD_EL(_targetPts, 3, 0);
+    float p4y = -MATD_EL(_targetPts, 3, 1);
     
     /* analytic solution */
-    double detsInv = -1 / (halfLength * (p1x * p2y - p2x * p1y - p1x * p4y + p2x * p3y - p3x * p2y + p4x * p1y
+    float detsInv = -1 / (halfLength * (p1x * p2y - p2x * p1y - p1x * p4y + p2x * p3y - p3x * p2y + p4x * p1y
                                          + p3x * p4y - p4x * p3y));
     
     MATD_EL(_H, 0, 0) = detsInv * (p1x * p3x * p2y - p2x * p3x * p1y - p1x * p4x * p2y + p2x * p4x * p1y 
@@ -187,7 +187,7 @@ void homographyFromSquarePoints(matd_t* &_targetPts, float halfLength, matd_t* &
     MATD_EL(_H, 2, 2) = 1.0;
 }
 
-void ippeComputeRotations(double j00, double j01, double j10, double j11, double p, double q, matd_t* &_R1, matd_t* &_R2)
+void ippeComputeRotations(float j00, float j01, float j10, float j11, float p, float q, matd_t* &_R1, matd_t* &_R2)
 {
     /**
      * Note that it is very hard to understand what is going on here from the code, so if you want to have a clear explanation
@@ -200,14 +200,14 @@ void ippeComputeRotations(double j00, double j01, double j10, double j11, double
     if (_R2 != NULL) matd_destroy(_R2);
     _R2 = matd_create(3, 3);
     
-    double a00, a01, a10, a11, ata00, ata01, ata11, b00, b01, b10, b11, binv00, binv01, binv10, binv11;
-    double rtilde00, rtilde01, rtilde10, rtilde11;
-    double rtilde00_2, rtilde01_2, rtilde10_2, rtilde11_2;
-    double b0, b1, gamma, dtinv;
-    double sp;
+    float a00, a01, a10, a11, ata00, ata01, ata11, b00, b01, b10, b11, binv00, binv01, binv10, binv11;
+    float rtilde00, rtilde01, rtilde10, rtilde11;
+    float rtilde00_2, rtilde01_2, rtilde10_2, rtilde11_2;
+    float b0, b1, gamma, dtinv;
+    float sp;
     
     /* Finds the rotation Rv that rotates a vector (p, q, 1) to the z axis (0, 0, 1) */
-    double s, t, krs0, krs1, krs0_2, krs1_2, costh, sinth;
+    float s, t, krs0, krs1, krs0_2, krs1_2, costh, sinth;
     
     s = sqrt(p * p + q * q + 1);
     t = sqrt(p * p + q * q);
@@ -219,9 +219,9 @@ void ippeComputeRotations(double j00, double j01, double j10, double j11, double
     krs0_2 = krs0 * krs0;
     krs1_2 = krs1 * krs1;
     
-    double rv00, rv01, rv02;
-    double rv10, rv11, rv12;
-    double rv20, rv21, rv22;
+    float rv00, rv01, rv02;
+    float rv10, rv11, rv12;
+    float rv20, rv21, rv22;
     
     rv00 = (costh - 1) * krs0_2 + 1;
     rv01 = krs0 * krs1 * (costh - 1);
@@ -328,28 +328,28 @@ void ippeComputeTranslation(matd_t* &_objectPoints, matd_t* &_imgPoints, matd_t*
     _t = matd_create(3, 1);
     
     /* coefficients of (transpose(A)*A) */
-    double ATA00 = numPts;
-    double ATA02 = 0;
-    double ATA11 = numPts;
-    double ATA12 = 0;
-    double ATA20 = 0;
-    double ATA21 = 0;
-    double ATA22 = 0;
+    float ATA00 = numPts;
+    float ATA02 = 0;
+    float ATA11 = numPts;
+    float ATA12 = 0;
+    float ATA20 = 0;
+    float ATA21 = 0;
+    float ATA22 = 0;
 
     /* coefficients of (transpose(A)*b) */
-    double ATb0 = 0;
-    double ATb1 = 0;
-    double ATb2 = 0;
+    float ATb0 = 0;
+    float ATb1 = 0;
+    float ATb2 = 0;
 
     /* S  gives inv(transpose(A)*A)/det(A)^2 */
-    double S00, S01, S02;
-    double S10, S11, S12;
-    double S20, S21, S22;
+    float S00, S01, S02;
+    float S10, S11, S12;
+    float S20, S21, S22;
 
-    double rx, ry, rz;
-    double a2;
-    double b2;
-    double bx, by;
+    float rx, ry, rz;
+    float a2;
+    float b2;
+    float bx, by;
     
     /* now loop through each point and increment the coefficients */
     for (int i = 0; i < numPts; i++) {
@@ -378,7 +378,7 @@ void ippeComputeTranslation(matd_t* &_objectPoints, matd_t* &_imgPoints, matd_t*
         ATb2 = ATb2 + a2 * bx + b2 * by;
     }
     
-    double detAInv = 1.0 / (ATA00 * ATA11 * ATA22 - ATA00 * ATA12 * ATA21 - ATA02 * ATA11 * ATA20);
+    float detAInv = 1.0 / (ATA00 * ATA11 * ATA22 - ATA00 * ATA12 * ATA21 - ATA02 * ATA11 * ATA20);
 
     /* construct S */
     S00 =  ATA11 * ATA22 - ATA12 * ATA21;
@@ -441,7 +441,7 @@ void undistortPoints(matd_t* &_imagePoints, matd_t* &_undistortedPoints, matd_t*
     assert(_cameraMatrix->nrows == 3 && _cameraMatrix->ncols == 3);
     assert(_distCoeffs == NULL || _distCoeffs->nrows * _distCoeffs->ncols == 5);
     
-    double k1, k2, p1, p2, k3;
+    float k1, k2, p1, p2, k3;
     
     if (_distCoeffs == NULL) {
         k1 = k2 = p1 = p2 = k3 = 0;
@@ -453,12 +453,12 @@ void undistortPoints(matd_t* &_imagePoints, matd_t* &_undistortedPoints, matd_t*
         k3 = _distCoeffs->data[4];
     }
     
-    double fx = MATD_EL(_cameraMatrix, 0, 0);
-    double fy = MATD_EL(_cameraMatrix, 1, 1);
-    double ifx = 1./fx;
-    double ify = 1./fy;
-    double cx = MATD_EL(_cameraMatrix, 0, 2);
-    double cy = MATD_EL(_cameraMatrix, 1, 2);
+    float fx = MATD_EL(_cameraMatrix, 0, 0);
+    float fy = MATD_EL(_cameraMatrix, 1, 1);
+    float ifx = 1./fx;
+    float ify = 1./fy;
+    float cx = MATD_EL(_cameraMatrix, 0, 2);
+    float cy = MATD_EL(_cameraMatrix, 1, 2);
     
     int numPts = _imagePoints->nrows;
     
@@ -466,7 +466,7 @@ void undistortPoints(matd_t* &_imagePoints, matd_t* &_undistortedPoints, matd_t*
     _undistortedPoints = matd_create(numPts, 2);
     
     for (int i = 0; i < numPts; i ++) {
-        double x, y, x0 = 0, y0 = 0;
+        float x, y, x0 = 0, y0 = 0;
         
         x = MATD_EL(_imagePoints, i, 0);
         y = MATD_EL(_imagePoints, i, 1);
@@ -481,10 +481,10 @@ void undistortPoints(matd_t* &_imagePoints, matd_t* &_undistortedPoints, matd_t*
             
             /* compensate distortion iteratively */
             for (int j = 0; j < _maxITER; j ++) {
-                double r2 = x*x + y*y;
-                double icdist = 1. / (1 + ((k3*r2 + k2)*r2 + k1)*r2);
-                double deltaX = 2*p1*x*y + p2*(r2 + 2*x*x);
-                double deltaY = p1*(r2 + 2*y*y) + 2*p2*x*y;
+                float r2 = x*x + y*y;
+                float icdist = 1. / (1 + ((k3*r2 + k2)*r2 + k1)*r2);
+                float deltaX = 2*p1*x*y + p2*(r2 + 2*x*x);
+                float deltaY = p1*(r2 + 2*y*y) + 2*p2*x*y;
                 x = (x0 - deltaX)*icdist;
                 y = (y0 - deltaY)*icdist;
             }

@@ -68,7 +68,7 @@ LocalPositionEstimation::LocalPositionEstimation(void *param) :
 	MATD_EL(_camera_matrix, 1, 1) = _param->fy;
 	MATD_EL(_camera_matrix, 1, 2) = _param->cy;
 
-	double dist[] = {_param->k1, _param->k2, _param->p1, _param->p2, _param->k3};
+	float dist[] = {_param->k1, _param->k2, _param->p1, _param->p2, _param->k3};
 	_dist_param = matd_create_data(1, 5, dist);
 }
 
@@ -257,19 +257,19 @@ void LocalPositionEstimation::_quaternion2rotationMatrix(const Quaternion &q, ap
     if (R) apriltag::matd_destroy(R);
     R = apriltag::matd_create(3, 3);
     
-    double sqw = q.w * q.w;
-    double sqx = q.x * q.x;
-    double sqy = q.y * q.y;
-    double sqz = q.z * q.z;
+    float sqw = q.w * q.w;
+    float sqx = q.x * q.x;
+    float sqy = q.y * q.y;
+    float sqz = q.z * q.z;
     
     /* invs (inverse square length) is only required if quaternion is not already normalised */
-    double invs = 1 / (sqx + sqy + sqz + sqw);  /* since sqw + sqx + sqy + sqz = 1/invs*invs */
+    float invs = 1 / (sqx + sqy + sqz + sqw);  /* since sqw + sqx + sqy + sqz = 1/invs*invs */
     MATD_EL(R, 0, 0) = ( sqx - sqy - sqz + sqw) * invs;
     MATD_EL(R, 1, 1) = (-sqx + sqy - sqz + sqw) * invs;
     MATD_EL(R, 2, 2) = (-sqx - sqy + sqz + sqw) * invs;
     
-    double tmp1 = q.x * q.y;
-    double tmp2 = q.z * q.w;
+    float tmp1 = q.x * q.y;
+    float tmp2 = q.z * q.w;
     MATD_EL(R, 1, 0) = 2.0 * (tmp1 + tmp2) * invs;
     MATD_EL(R, 0, 1) = 2.0 * (tmp1 - tmp2) * invs;
     

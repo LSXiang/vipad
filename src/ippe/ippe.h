@@ -132,21 +132,21 @@ void homographyFromSquarePoints(matd_t* &_targetPts, float halfLength, matd_t* &
  * @param p the x coordinate of point (ux,uy) mapped into the image (undistorted and normalised position)
  * @param q the y coordinate of point (ux,uy) mapped into the image (undistorted and normalised position)
  */
-void ippeComputeRotations(double j00, double j01, double j10, double j11, double p, double q, matd_t* &_R1, matd_t* &_R2);
+void ippeComputeRotations(float j00, float j01, float j10, float j11, float p, float q, matd_t* &_R1, matd_t* &_R2);
 
 /** 
  * @brief Computes the translation solution for a given rotation solution
  * @param _objectPoints Array of corresponding model points, Nx3 where N is the number of points
  * @param _undistortedPoints Array of corresponding image points (undistorted), Nx2 where N is the number of points
- * @param _R1 Rotation solution from IPPE, 3x3 double
- * @param _t  Translation solution, 3x1 double
+ * @param _R1 Rotation solution from IPPE, 3x3 float
+ * @param _t  Translation solution, 3x1 float
  */
 void ippeComputeTranslation(matd_t* &_objectPoints, matd_t* &_imgPoints, matd_t* &_R, matd_t* &_t);
 
 /**
  * @brief Determines the reprojection error of a pose solution
- * @param _R1 Rotation solution from IPPE, 3x3 double
- * @param _t  Translation solution from IPPE  3x1 double
+ * @param _R1 Rotation solution from IPPE, 3x3 float
+ * @param _t  Translation solution from IPPE  3x1 float
  * @param _objectPoints Array of corresponding model points, Nx3 where N is the number of points
  * @param _undistortedPoints Array of corresponding image points (undistorted and normalized), Nx2 where
  *                           N is the number of points
@@ -167,8 +167,8 @@ void undistortPoints(matd_t* &_imagePoints, matd_t* &_undistortedPoints, matd_t*
 
 /**
  * @brief Finds the rotation _Ra that rotates a vector _a to the z axis (0, 0, 1)
- * @param _a  vector: 3x1 matd_t (double)
- * @param _Ra Rotation: 3x3 matd_t (double)
+ * @param _a  vector: 3x1 matd_t (float)
+ * @param _Ra Rotation: 3x3 matd_t (float)
  */
 // void rotateVec2ZAxis(matd_t *_a, matd_t *_Ra);
 

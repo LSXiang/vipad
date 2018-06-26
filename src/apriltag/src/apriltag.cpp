@@ -67,9 +67,9 @@ extern zarray_t *apriltag_quad_thresh(apriltag_detector_t *td, image_u8_t *im);
 
 struct graymodel
 {
-    double A[3][3];
-    double B[3];
-    double C[3];
+    float A[3][3];
+    float B[3];
+    float C[3];
 };
 
 void graymodel_init(struct graymodel *gm)
@@ -77,7 +77,7 @@ void graymodel_init(struct graymodel *gm)
     memset(gm, 0, sizeof(struct graymodel));
 }
 
-void graymodel_add(struct graymodel *gm, double x, double y, double gray)
+void graymodel_add(struct graymodel *gm, float x, float y, float gray)
 {
     // update upper right entries of A = J'J
     gm->A[0][0] += x*x;
@@ -95,10 +95,10 @@ void graymodel_add(struct graymodel *gm, double x, double y, double gray)
 
 void graymodel_solve(struct graymodel *gm)
 {
-    mat33_sym_solve((double*) gm->A, gm->B, gm->C);
+    mat33_sym_solve((float*) gm->A, gm->B, gm->C);
 }
 
-double graymodel_interpolate(struct graymodel *gm, double x, double y)
+float graymodel_interpolate(struct graymodel *gm, float x, float y)
 {
     return gm->C[0]*x + gm->C[1]*y + gm->C[2];
 }
@@ -516,7 +516,7 @@ float quad_decode(apriltag_family_t *family, image_u8_t *im, struct quad *quad, 
         1, 0,
         0
 
-        // XXX double-counts the corners.
+        // XXX float-counts the corners.
     };
 
     struct graymodel whitemodel, blackmodel;
@@ -529,13 +529,13 @@ float quad_decode(apriltag_family_t *family, image_u8_t *im, struct quad *quad, 
         int is_white = pattern[4];
 
         for (int i = 0; i < 2*family->black_border + family->d; i++) {
-            double tagx01 = (pattern[0] + i*pattern[2]) / (2*family->black_border + family->d);
-            double tagy01 = (pattern[1] + i*pattern[3]) / (2*family->black_border + family->d);
+            float tagx01 = (pattern[0] + i*pattern[2]) / (2*family->black_border + family->d);
+            float tagy01 = (pattern[1] + i*pattern[3]) / (2*family->black_border + family->d);
 
-            double tagx = 2*(tagx01-0.5);
-            double tagy = 2*(tagy01-0.5);
+            float tagx = 2*(tagx01-0.5);
+            float tagy = 2*(tagy01-0.5);
 
-            double px, py;
+            float px, py;
             homography_project(quad->H, tagx, tagy, &px, &py);
 
             // don't round
@@ -577,14 +577,14 @@ float quad_decode(apriltag_family_t *family, image_u8_t *im, struct quad *quad, 
         int bitx = bitidx % family->d;
         int bity = bitidx / family->d;
 
-        double tagx01 = (family->black_border + bitx + 0.5) / (2*family->black_border + family->d);
-        double tagy01 = (family->black_border + bity + 0.5) / (2*family->black_border + family->d);
+        float tagx01 = (family->black_border + bitx + 0.5) / (2*family->black_border + family->d);
+        float tagy01 = (family->black_border + bity + 0.5) / (2*family->black_border + family->d);
 
         // scale to [-1, 1]
-        double tagx = 2*(tagx01-0.5);
-        double tagy = 2*(tagy01-0.5);
+        float tagx = 2*(tagx01-0.5);
+        float tagy = 2*(tagy01-0.5);
 
-        double px, py;
+        float px, py;
         homography_project(quad->H, tagx, tagy, &px, &py);
 
         rcode = (rcode << 1);
@@ -598,7 +598,7 @@ float quad_decode(apriltag_family_t *family, image_u8_t *im, struct quad *quad, 
 
         int v = im->buf[iy*im->stride + ix];
 
-        double thresh = (graymodel_interpolate(&blackmodel, tagx, tagy) + graymodel_interpolate(&whitemodel, tagx, tagy)) / 2.0;
+        float thresh = (graymodel_interpolate(&blackmodel, tagx, tagy) + graymodel_interpolate(&whitemodel, tagx, tagy)) / 2.0;
         if (v > thresh) {
             white_score += (v - thresh);
             white_score_count ++;
@@ -617,7 +617,7 @@ float quad_decode(apriltag_family_t *family, image_u8_t *im, struct quad *quad, 
     return fmin(white_score / white_score_count, black_score / black_score_count);
 }
 
-// double score_decodability(apriltag_family_t *family, image_u8_t *im, struct quad *quad, void *user)
+// float score_decodability(apriltag_family_t *family, image_u8_t *im, struct quad *quad, void *user)
 // {
 //     struct quick_decode_entry entry;
 // 
@@ -629,15 +629,15 @@ float quad_decode(apriltag_family_t *family, image_u8_t *im, struct quad *quad, 
 
 static void refine_edges(apriltag_detector_t *td, image_u8_t *im_orig, struct quad *quad)
 {
-    double lines[4][4]; // for each line, [Ex Ey nx ny]
+    float lines[4][4]; // for each line, [Ex Ey nx ny]
 
     for (int edge = 0; edge < 4; edge++) {
         int a = edge, b = (edge + 1) & 3; // indices of the end points.
 
         // compute the normal to the current line estimate
-        double nx = quad->p[b][1] - quad->p[a][1];
-        double ny = -quad->p[b][0] + quad->p[a][0];
-        double mag = sqrt(nx*nx + ny*ny);
+        float nx = quad->p[b][1] - quad->p[a][1];
+        float ny = -quad->p[b][0] + quad->p[a][0];
+        float mag = sqrt(nx*nx + ny*ny);
         nx /= mag;
         ny /= mag;
 
@@ -647,21 +647,21 @@ static void refine_edges(apriltag_detector_t *td, image_u8_t *im_orig, struct qu
         int nsamples = imax(16, mag / 8); // XXX tunable
 
         // stats for fitting a line...
-        double Mx = 0, My = 0, Mxx = 0, Mxy = 0, Myy = 0, N = 0;
+        float Mx = 0, My = 0, Mxx = 0, Mxy = 0, Myy = 0, N = 0;
 
         for (int s = 0; s < nsamples; s++) {
             // compute a point along the line... Note, we're avoiding
             // sampling *right* at the corners, since those points are
             // the least reliable.
-            double alpha = (1.0 + s) / (nsamples + 1);
-            double x0 = alpha*quad->p[a][0] + (1-alpha)*quad->p[b][0];
-            double y0 = alpha*quad->p[a][1] + (1-alpha)*quad->p[b][1];
+            float alpha = (1.0 + s) / (nsamples + 1);
+            float x0 = alpha*quad->p[a][0] + (1-alpha)*quad->p[b][0];
+            float y0 = alpha*quad->p[a][1] + (1-alpha)*quad->p[b][1];
 
             // search along the normal to this line, looking at the
             // gradients along the way. We're looking for a strong
             // response.
-            double Mn = 0;
-            double Mcount = 0;
+            float Mn = 0;
+            float Mcount = 0;
 
             // XXX tunable: how far to search?  We want to search far
             // enough that we find the best edge, but not so far that
@@ -671,11 +671,11 @@ static void refine_edges(apriltag_detector_t *td, image_u8_t *im_orig, struct qu
             // search on another pixel in the first place. Likewise,
             // for very small tags, we don't want the range to be too
             // big.
-//             double range = td->quad_decimate + 1;
-            double range = 1.0 + 1;
+//             float range = td->quad_decimate + 1;
+            float range = 1.0 + 1;
 
             // XXX tunable step size.
-            for (double n = -range; n <= range; n +=  0.25) {
+            for (float n = -range; n <= range; n +=  0.25) {
                 // Because of the guaranteed winding order of the
                 // points in the quad, we will start inside the white
                 // portion of the quad and work our way outward.
@@ -684,7 +684,7 @@ static void refine_edges(apriltag_detector_t *td, image_u8_t *im_orig, struct qu
                 // how far +/- to look? Small values compute the
                 // gradient more precisely, but are more sensitive to
                 // noise.
-                double grange = 1;
+                float grange = 1;
                 int x1 = x0 + (n + grange)*nx;
                 int y1 = y0 + (n + grange)*ny;
                 if (x1 < 0 || x1 >= im_orig->width || y1 < 0 || y1 >= im_orig->height)
@@ -701,7 +701,7 @@ static void refine_edges(apriltag_detector_t *td, image_u8_t *im_orig, struct qu
                 if (g1 < g2) // reject points whose gradient is "backwards". They can only hurt us.
                     continue;
 
-                double weight = (g2 - g1)*(g2 - g1); // XXX tunable. What shape for weight=f(g2-g1)?
+                float weight = (g2 - g1)*(g2 - g1); // XXX tunable. What shape for weight=f(g2-g1)?
 
                 // compute weighted average of the gradient at this point.
                 Mn += weight*n;
@@ -712,11 +712,11 @@ static void refine_edges(apriltag_detector_t *td, image_u8_t *im_orig, struct qu
             if (Mcount == 0)
                 continue;
 
-            double n0 = Mn / Mcount;
+            float n0 = Mn / Mcount;
 
             // where is the point along the line?
-            double bestx = x0 + n0*nx;
-            double besty = y0 + n0*ny;
+            float bestx = x0 + n0*nx;
+            float besty = y0 + n0*ny;
 
             // update our line fit statistics
             Mx += bestx;
@@ -728,12 +728,12 @@ static void refine_edges(apriltag_detector_t *td, image_u8_t *im_orig, struct qu
         }
 
         // fit a line
-        double Ex = Mx / N, Ey = My / N;
-        double Cxx = Mxx / N - Ex*Ex;
-        double Cxy = Mxy / N - Ex*Ey;
-        double Cyy = Myy / N - Ey*Ey;
+        float Ex = Mx / N, Ey = My / N;
+        float Cxx = Mxx / N - Ex*Ex;
+        float Cxy = Mxy / N - Ex*Ey;
+        float Cyy = Myy / N - Ey*Ey;
 
-        double normal_theta = .5 * atan2f(-2*Cxy, (Cyy - Cxx));
+        float normal_theta = .5 * atan2f(-2*Cxy, (Cyy - Cxx));
         nx = cosf(normal_theta);
         ny = sinf(normal_theta);
         lines[edge][0] = Ex;
@@ -746,19 +746,19 @@ static void refine_edges(apriltag_detector_t *td, image_u8_t *im_orig, struct qu
     for (int i = 0; i < 4; i++) {
 
         // solve for the intersection of lines (i) and (i+1)&3.
-        double A00 =  lines[i][3],  A01 = -lines[(i+1)&3][3];
-        double A10 =  -lines[i][2],  A11 = lines[(i+1)&3][2];
-        double B0 = -lines[i][0] + lines[(i+1)&3][0];
-        double B1 = -lines[i][1] + lines[(i+1)&3][1];
+        float A00 =  lines[i][3],  A01 = -lines[(i+1)&3][3];
+        float A10 =  -lines[i][2],  A11 = lines[(i+1)&3][2];
+        float B0 = -lines[i][0] + lines[(i+1)&3][0];
+        float B1 = -lines[i][1] + lines[(i+1)&3][1];
 
-        double det = A00 * A11 - A10 * A01;
+        float det = A00 * A11 - A10 * A01;
 
         // inverse.
         if (fabs(det) > 0.001) {
             // solve
-            double W00 = A11 / det, W01 = -A01 / det;
+            float W00 = A11 / det, W01 = -A01 / det;
 
-            double L0 = W00*B0 + W01*B1;
+            float L0 = W00*B0 + W01*B1;
 
             // compute intersection
             quad->p[i][0] = lines[i][0] + L0*A00;
@@ -780,7 +780,7 @@ void apriltag_detection_destroy(apriltag_detection_t *det)
     apriltagFree(det);
 }
 
-int prefer_smaller(int pref, double q0, double q1)
+int prefer_smaller(int pref, float q0, float q1)
 {
     if (pref)     // already prefer something? exit.
         return pref;
@@ -917,8 +917,8 @@ zarray_t *apriltag_detector_detect(apriltag_detector_t *td, image_u8_t *im_orig)
                     det->hamming = entry.hamming;
                     det->decision_margin = decision_margin;
                     
-                    double theta = -entry.rotation * M_PI / 2.0;
-                    double c = cos(theta), s = sin(theta);
+                    float theta = -entry.rotation * M_PI / 2.0;
+                    float c = cos(theta), s = sin(theta);
                     
                     // Fix the rotation of our homography to properly orient the tag_families
                     matd_t *R = matd_create(3, 3);
@@ -942,7 +942,7 @@ zarray_t *apriltag_detector_detect(apriltag_detector_t *td, image_u8_t *im_orig)
                         int tcx = (i == 1 || i == 2) ? 1 : -1;
                         int tcy = (i < 2) ? 1 : -1;
 
-                        double p[2];
+                        float p[2];
 
                         homography_project(det->H, tcx, tcy, &p[0], &p[1]);
 

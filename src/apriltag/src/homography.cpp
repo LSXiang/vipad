@@ -46,8 +46,8 @@ matd_t *homography_compute(zarray_t *correspondences)
 {
     // compute centroids of both sets of points (yields a better
     // conditioned information matrix)
-    double x_cx = 0, x_cy = 0;
-    double y_cx = 0, y_cy = 0;
+    float x_cx = 0, x_cy = 0;
+    float y_cx = 0, y_cy = 0;
 
     for (int i = 0; i < zarray_size(correspondences); i++) {
         float *c;
@@ -67,7 +67,7 @@ matd_t *homography_compute(zarray_t *correspondences)
 
     // NB We don't normalize scale; it seems implausible that it could
     // possibly make any difference given the dynamic range of IEEE
-    // doubles.
+    // floats.
 
     matd_t *A = matd_create(9,9);
     for (int i = 0; i < zarray_size(correspondences); i++) {
@@ -75,17 +75,17 @@ matd_t *homography_compute(zarray_t *correspondences)
         zarray_get_volatile(correspondences, i, &c);
 
         // (below world is "x", and image is "y")
-        double worldx = c[0] - x_cx;
-        double worldy = c[1] - x_cy;
-        double imagex = c[2] - y_cx;
-        double imagey = c[3] - y_cy;
+        float worldx = c[0] - x_cx;
+        float worldy = c[1] - x_cy;
+        float imagex = c[2] - y_cx;
+        float imagey = c[3] - y_cy;
 
-        double a03 = -worldx;
-        double a04 = -worldy;
-        double a05 = -1;
-        double a06 = worldx*imagey;
-        double a07 = worldy*imagey;
-        double a08 = imagey;
+        float a03 = -worldx;
+        float a04 = -worldy;
+        float a05 = -1;
+        float a06 = worldx*imagey;
+        float a07 = worldy*imagey;
+        float a08 = imagey;
 
         MATD_EL(A, 3, 3) += a03*a03;
         MATD_EL(A, 3, 4) += a03*a04;
@@ -109,12 +109,12 @@ matd_t *homography_compute(zarray_t *correspondences)
         MATD_EL(A, 7, 8) += a07*a08;
         MATD_EL(A, 8, 8) += a08*a08;
 
-        double a10 = worldx;
-        double a11 = worldy;
-        double a12 = 1;
-        double a16 = -worldx*imagex;
-        double a17 = -worldy*imagex;
-        double a18 = -imagex;
+        float a10 = worldx;
+        float a11 = worldy;
+        float a12 = 1;
+        float a16 = -worldx*imagex;
+        float a17 = -worldy*imagex;
+        float a18 = -imagex;
 
         MATD_EL(A, 0, 0) += a10*a10;
         MATD_EL(A, 0, 1) += a10*a11;
@@ -138,12 +138,12 @@ matd_t *homography_compute(zarray_t *correspondences)
         MATD_EL(A, 7, 8) += a17*a18;
         MATD_EL(A, 8, 8) += a18*a18;
 
-        double a20 = -worldx*imagey;
-        double a21 = -worldy*imagey;
-        double a22 = -imagey;
-        double a23 = worldx*imagex;
-        double a24 = worldy*imagex;
-        double a25 = imagex;
+        float a20 = -worldx*imagey;
+        float a21 = -worldy*imagey;
+        float a22 = -imagey;
+        float a23 = worldx*imagex;
+        float a24 = worldy*imagex;
+        float a25 = imagex;
 
         MATD_EL(A, 0, 0) += a20*a20;
         MATD_EL(A, 0, 1) += a20*a21;
@@ -176,11 +176,11 @@ matd_t *homography_compute(zarray_t *correspondences)
     matd_t *H = matd_create(3,3);
 
     // compute singular vector by (carefully) inverting the rank-deficient matrix.
-    double data[] = { 1, 0, 0, 0, 0, 0, 0, 0, 0 };
+    float data[] = { 1, 0, 0, 0, 0, 0, 0, 0, 0 };
     matd_t *b = matd_create_data(9, 1, data);
     matd_t *Ainv = NULL;
 
-    if (0) {
+    if (1) {
         matd_plu_t *lu = matd_plu(A);
         Ainv = matd_plu_solve(lu, b);
         matd_plu_destroy(lu);
@@ -190,7 +190,7 @@ matd_t *homography_compute(zarray_t *correspondences)
         matd_chol_destroy(chol);
     }
 
-    double scale = 0;
+    float scale = 0;
 
     for (int i = 0; i < 9; i++)
         scale += sq(MATD_EL(Ainv, i, 0));

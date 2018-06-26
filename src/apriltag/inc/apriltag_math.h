@@ -39,8 +39,8 @@ namespace apriltag {
 
 // Computes the cholesky factorization of A, putting the lower
 // triangular matrix into R.
-static inline void mat33_chol(const double *A,
-                              double *R)
+static inline void mat33_chol(const float *A,
+                              float *R)
 {
     // A[0] = R[0]*R[0]
     R[0] = sqrt(A[0]);
@@ -65,8 +65,8 @@ static inline void mat33_chol(const double *A,
     R[5] = 0;
 }
 
-static inline void mat33_lower_tri_inv(const double *A,
-                                       double *R)
+static inline void mat33_lower_tri_inv(const float *A,
+                                       float *R)
 {
     // A[0]*R[0] = 1
     R[0] = 1 / A[0];
@@ -88,17 +88,17 @@ static inline void mat33_lower_tri_inv(const double *A,
 }
 
 
-static inline void mat33_sym_solve(const double *A,
-                                   const double *B,
-                                   double *R)
+static inline void mat33_sym_solve(const float *A,
+                                   const float *B,
+                                   float *R)
 {
-    double L[9];
+    float L[9];
     mat33_chol(A, L);
 
-    double M[9];
+    float M[9];
     mat33_lower_tri_inv(L, M);
 
-    double tmp[3];
+    float tmp[3];
     tmp[0] = M[0]*B[0];
     tmp[1] = M[3]*B[0] + M[4]*B[1];
     tmp[2] = M[6]*B[0] + M[7]*B[1] + M[8]*B[2];

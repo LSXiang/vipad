@@ -73,9 +73,9 @@ struct pt
 
 struct line_fit_pt
 {
-    double Mx, My;
-    double Mxx, Myy, Mxy;
-    double W; // total weight
+    float Mx, My;
+    float Mxx, Myy, Mxy;
+    float W; // total weight
 };
 
 static inline void ptsort(struct pt *pts, int sz)
@@ -190,12 +190,12 @@ static inline void ptsort(struct pt *pts, int sz)
 //
 // fit a line to the points [i0, i1] (inclusive). i0, i1 are both [0,
 // sz) if i1 < i0, we treat this as a wrap around.
-void fit_line(struct line_fit_pt *lfps, int sz, int i0, int i1, double *lineparm, double *err, double *mse)
+void fit_line(struct line_fit_pt *lfps, int sz, int i0, int i1, float *lineparm, float *err, float *mse)
 {
     assert(i0 != i1);
     assert(i0 >= 0 && i1 >= 0 && i0 < sz && i1 < sz);
 
-    double Mx, My, Mxx, Myy, Mxy, W;
+    float Mx, My, Mxx, Myy, Mxy, W;
     int N; // how many points are included in the set?
 
     if (i0 < i1) {
@@ -240,34 +240,34 @@ void fit_line(struct line_fit_pt *lfps, int sz, int i0, int i1, double *lineparm
 
     assert(N >= 2);
 
-    double Ex = Mx / W;
-    double Ey = My / W;
-    double Cxx = Mxx / W - Ex*Ex;
-    double Cxy = Mxy / W - Ex*Ey;
-    double Cyy = Myy / W - Ey*Ey;
+    float Ex = Mx / W;
+    float Ey = My / W;
+    float Cxx = Mxx / W - Ex*Ex;
+    float Cxy = Mxy / W - Ex*Ey;
+    float Cyy = Myy / W - Ey*Ey;
 
-    double nx, ny;
+    float nx, ny;
 
     if (1) {
         // on iOS about 5% of total CPU spent in these trig functions.
         // 85 ms per frame on 5S, example.pnm
         //
-        // XXX this was using the double-precision atan2. Was there a case where
+        // XXX this was using the float-precision atan2. Was there a case where
         // we needed that precision? Seems doubtful.
-        double normal_theta = .5 * atan2f(-2*Cxy, (Cyy - Cxx));
+        float normal_theta = .5 * atan2f(-2*Cxy, (Cyy - Cxx));
         nx = cosf(normal_theta);
         ny = sinf(normal_theta);
     } else {
         // 73.5 ms per frame on 5S, example.pnm
-        double ty = -2*Cxy;
-        double tx = (Cyy - Cxx);
-        double mag = ty*ty + tx*tx;
+        float ty = -2*Cxy;
+        float tx = (Cyy - Cxx);
+        float mag = ty*ty + tx*tx;
 
         if (mag == 0) {
             nx = 1;
             ny = 0;
         } else {
-            double norm = sqrtf(ty*ty + tx*tx);
+            float norm = sqrtf(ty*ty + tx*tx);
             tx /= norm;
 
             // ty is now sin(2theta)
@@ -326,8 +326,8 @@ int pt_compare_theta(const void *_a, const void *_b)
 
 int err_compare_descending(const void *_a, const void *_b)
 {
-    const double *a = (const double *)_a;
-    const double *b = (const double *)_b;
+    const float *a = (const float *)_a;
+    const float *b = (const float *)_b;
 
     return ((*a) < (*b)) ? 1 : -1;
 }
@@ -370,8 +370,8 @@ int quad_segment_maxima(apriltag_detector_t *td, zarray_t *cluster, struct line_
 
 //    printf("sz %5d, ksz %3d\n", sz, ksz);
 
-//     double errs[sz];
-    double *errs = (double *)apriltagMalloc(sz * sizeof(double));
+//     float errs[sz];
+    float *errs = (float *)apriltagMalloc(sz * sizeof(float));
     
     for (int i = 0; i < sz; i++) {
         fit_line(lfps, sz, (i + sz - ksz) % sz, (i + ksz) % sz, NULL, &errs[i], NULL);
@@ -379,13 +379,13 @@ int quad_segment_maxima(apriltag_detector_t *td, zarray_t *cluster, struct line_
 
     // apply a low-pass filter to errs
     if (1) {
-//         double y[sz];
-        double *y = (double *)apriltagMalloc(sz * sizeof(double));
+//         float y[sz];
+        float *y = (float *)apriltagMalloc(sz * sizeof(float));
 
         // how much filter to apply?
 
         // XXX Tunable
-        double sigma = 1; // was 3
+        float sigma = 1; // was 3
 
         // cutoff = exp(-j*j/(2*sigma*sigma));
         // log(cutoff) = -j*j / (2*sigma*sigma)
@@ -396,7 +396,7 @@ int quad_segment_maxima(apriltag_detector_t *td, zarray_t *cluster, struct line_
         // 'cutoff'.
 
         // XXX Tunable (though not super useful to change)
-        double cutoff = 0.05;
+        float cutoff = 0.05;
         int fsz = sqrt(-log(cutoff)*2*sigma*sigma) + 1;
         fsz = 2*fsz + 1;
 
@@ -411,7 +411,7 @@ int quad_segment_maxima(apriltag_detector_t *td, zarray_t *cluster, struct line_
         }
 
         for (int iy = 0; iy < sz; iy++) {
-            double acc = 0;
+            float acc = 0;
 
             for (int i = 0; i < fsz; i++) {
                 acc += errs[(iy + i - fsz / 2 + sz) % sz] * f[i];
@@ -420,14 +420,14 @@ int quad_segment_maxima(apriltag_detector_t *td, zarray_t *cluster, struct line_
         }
 
 //         memcpy(errs, y, sizeof(y));
-        memcpy(errs, y, sz * sizeof(double));
+        memcpy(errs, y, sz * sizeof(float));
         apriltagFree(y);
     }
 
 //     int maxima[sz];
-//     double maxima_errs[sz];
+//     float maxima_errs[sz];
     int *maxima = (int *)apriltagMalloc(sz * sizeof(int));
-    double *maxima_errs = (double *)apriltagMalloc(sz * sizeof(double));
+    float *maxima_errs = (float *)apriltagMalloc(sz * sizeof(float));
     int nmaxima = 0;
 
     for (int i = 0; i < sz; i++) {
@@ -447,14 +447,14 @@ int quad_segment_maxima(apriltag_detector_t *td, zarray_t *cluster, struct line_
 
     if (nmaxima > max_nmaxima) {
 //         printf ("nmaxima : %5d \r\n", nmaxima);
-//         double maxima_errs_copy[nmaxima];
-        double *maxima_errs_copy = (double *)apriltagMalloc(nmaxima * sizeof(double));
-        memcpy(maxima_errs_copy, maxima_errs, nmaxima * sizeof(double));
+//         float maxima_errs_copy[nmaxima];
+        float *maxima_errs_copy = (float *)apriltagMalloc(nmaxima * sizeof(float));
+        memcpy(maxima_errs_copy, maxima_errs, nmaxima * sizeof(float));
 
         // throw out all but the best handful of maxima. Sorts descending.
-        qsort(maxima_errs_copy, nmaxima, sizeof(double), err_compare_descending);
+        qsort(maxima_errs_copy, nmaxima, sizeof(float), err_compare_descending);
 
-        double maxima_thresh = maxima_errs_copy[max_nmaxima];
+        float maxima_thresh = maxima_errs_copy[max_nmaxima];
         int out = 0;
         for (int in = 0; in < nmaxima; in++) {
             if (maxima_errs[in] <= maxima_thresh)
@@ -470,14 +470,14 @@ int quad_segment_maxima(apriltag_detector_t *td, zarray_t *cluster, struct line_
     apriltagFree(errs);
 
     int best_indices[4];
-    double best_error = HUGE_VALF;
+    float best_error = HUGE_VALF;
 
-    double err01, err12, err23, err30;
-    double mse01, mse12, mse23, mse30;
-    double params01[4], params12[4], params23[4], params30[4];
+    float err01, err12, err23, err30;
+    float mse01, mse12, mse23, mse30;
+    float params01[4], params12[4], params23[4], params30[4];
 
     // disallow quads where the angle is less than a critical value.
-    double max_dot = cos(td->qtp.critical_rad); //25*M_PI/180);
+    float max_dot = cos(td->qtp.critical_rad); //25*M_PI/180);
 
     for (int m0 = 0; m0 < nmaxima - 3; m0++) {
         int i0 = maxima[m0];
@@ -497,7 +497,7 @@ int quad_segment_maxima(apriltag_detector_t *td, zarray_t *cluster, struct line_
                 if (mse12 > td->qtp.max_line_fit_mse)
                     continue;
 
-                double dot = params01[2]*params12[2] + params01[3]*params12[3];
+                float dot = params01[2]*params12[2] + params01[3]*params12[3];
                 if (fabs(dot) > max_dot)
                     continue;
 
@@ -512,7 +512,7 @@ int quad_segment_maxima(apriltag_detector_t *td, zarray_t *cluster, struct line_
                     if (mse30 > td->qtp.max_line_fit_mse)
                         continue;
 
-                    double err = err01 + err12 + err23 + err30;
+                    float err = err01 + err12 + err23 + err30;
                     if (err < best_error) {
                         best_error = err;
                         best_indices[0] = i0;
@@ -572,17 +572,17 @@ int fit_quad(apriltag_detector_t *td, image_u8_t *im, zarray_t *cluster, struct 
     // (Only helps a small amount. The actual noise values here don't
     // matter much at all, but we want them [-1, 1]. (XXX with
     // fixed-point, should range be bigger?)
-    double cx = (xmin + xmax) * 0.5 + 0.05118;
-    double cy = (ymin + ymax) * 0.5 + -0.028581;
+    float cx = (xmin + xmax) * 0.5 + 0.05118;
+    float cy = (ymin + ymax) * 0.5 + -0.028581;
 
-    double dot = 0;
+    float dot = 0;
 
     for (int pidx = 0; pidx < zarray_size(cluster); pidx++) {
         struct pt *p;
         zarray_get_volatile(cluster, pidx, &p);
 
-        double dx = p->x - cx;
-        double dy = p->y - cy;
+        float dx = p->x - cx;
+        float dy = p->y - cy;
 
         p->theta = atan2f(dy, dx);
 
@@ -698,10 +698,10 @@ int fit_quad(apriltag_detector_t *td, image_u8_t *im, zarray_t *cluster, struct 
 
         if (0) {
             // we now undo our fixed-point arithmetic.
-            double delta = 0.5;
-            double x = p->x * .5 + delta;
-            double y = p->y * .5 + delta;
-            double W;
+            float delta = 0.5;
+            float x = p->x * .5 + delta;
+            float y = p->y * .5 + delta;
+            float W;
 
             for (int dy = -1; dy <= 1; dy++) {
                 int iy = y + dy;
@@ -723,8 +723,8 @@ int fit_quad(apriltag_detector_t *td, image_u8_t *im, zarray_t *cluster, struct 
 
                     W = sqrtf(grad_x*grad_x + grad_y*grad_y) + 1;
 
-//                    double fx = x + dx, fy = y + dy;
-                    double fx = ix + .5, fy = iy + .5;
+//                    float fx = x + dx, fy = y + dy;
+                    float fx = ix + .5, fy = iy + .5;
                     lfps[i].Mx  += W * fx;
                     lfps[i].My  += W * fy;
                     lfps[i].Mxx += W * fx * fx;
@@ -735,11 +735,11 @@ int fit_quad(apriltag_detector_t *td, image_u8_t *im, zarray_t *cluster, struct 
             }
         } else {
             // we now undo our fixed-point arithmetic.
-            double delta = 0.5; // adjust for pixel center bias
-            double x = p->x * .5 + delta;
-            double y = p->y * .5 + delta;
+            float delta = 0.5; // adjust for pixel center bias
+            float x = p->x * .5 + delta;
+            float y = p->y * .5 + delta;
             int ix = x, iy = y;
-            double W = 1;
+            float W = 1;
 
             if (ix > 0 && ix+1 < im->width && iy > 0 && iy+1 < im->height) {
                 int grad_x = im->buf[iy * im->stride + ix + 1] -
@@ -752,7 +752,7 @@ int fit_quad(apriltag_detector_t *td, image_u8_t *im, zarray_t *cluster, struct 
                 W = sqrt(grad_x*grad_x + grad_y*grad_y) + 1;
             }
 
-            double fx = x, fy = y;
+            float fx = x, fy = y;
             lfps[i].Mx  += W * fx;
             lfps[i].My  += W * fy;
             lfps[i].Mxx += W * fx * fx;
@@ -787,7 +787,7 @@ int fit_quad(apriltag_detector_t *td, image_u8_t *im, zarray_t *cluster, struct 
         res = 1;
 
     } else {
-        double lines[4][4];
+        float lines[4][4];
 
         for (int i = 0; i < 4; i++) {
             int i0 = indices[i];
@@ -806,7 +806,7 @@ int fit_quad(apriltag_detector_t *td, image_u8_t *im, zarray_t *cluster, struct 
                 }
             }
 
-            double err;
+            float err;
             fit_line(lfps, sz, i0, i1, lines[i], NULL, &err);
 
             if (err > td->qtp.max_line_fit_mse) {
@@ -831,22 +831,22 @@ int fit_quad(apriltag_detector_t *td, image_u8_t *im, zarray_t *cluster, struct 
             // We want the unit vector, so we need the perpendiculars. Thus, below
             // we have swapped the x and y components and flipped the y components.
 
-            double A00 =  lines[i][3],  A01 = -lines[(i+1)&3][3];
-            double A10 =  -lines[i][2],  A11 = lines[(i+1)&3][2];
-            double B0 = -lines[i][0] + lines[(i+1)&3][0];
-            double B1 = -lines[i][1] + lines[(i+1)&3][1];
+            float A00 =  lines[i][3],  A01 = -lines[(i+1)&3][3];
+            float A10 =  -lines[i][2],  A11 = lines[(i+1)&3][2];
+            float B0 = -lines[i][0] + lines[(i+1)&3][0];
+            float B1 = -lines[i][1] + lines[(i+1)&3][1];
 
-            double det = A00 * A11 - A10 * A01;
+            float det = A00 * A11 - A10 * A01;
 
             // inverse.
-            double W00 = A11 / det, W01 = -A01 / det;
+            float W00 = A11 / det, W01 = -A01 / det;
             if (fabs(det) < 0.001) {
                 res = 0;
                 goto finish;
             }
 
             // solve
-            double L0 = W00*B0 + W01*B1;
+            float L0 = W00*B0 + W01*B1;
 
             // compute intersection
             quad->p[i][0] = lines[i][0] + L0*A00;
@@ -855,11 +855,11 @@ int fit_quad(apriltag_detector_t *td, image_u8_t *im, zarray_t *cluster, struct 
             if (0) {
                 // we should get the same intersection starting
                 // from point p1 and moving L1*u1.
-                double W10 = -A10 / det, W11 = A00 / det;
-                double L1 = W10*B0 + W11*B1;
+                float W10 = -A10 / det, W11 = A00 / det;
+                float L1 = W10*B0 + W11*B1;
 
-                double x = lines[(i+1)&3][0] - L1*A10;
-                double y = lines[(i+1)&3][1] - L1*A11;
+                float x = lines[(i+1)&3][0] - L1*A10;
+                float y = lines[(i+1)&3][1] - L1*A11;
                 assert(fabs(x - quad->p[i][0]) < 0.001 &&
                        fabs(y - quad->p[i][1]) < 0.001);
             }
@@ -870,10 +870,10 @@ int fit_quad(apriltag_detector_t *td, image_u8_t *im, zarray_t *cluster, struct 
 
     // reject quads that are too small
     if (1) {
-        double area = 0;
+        float area = 0;
 
         // get area of triangle formed by points 0, 1, 2, 0
-        double length[3], p;
+        float length[3], p;
         for (int i = 0; i < 3; i++) {
             int idxa = i; // 0, 1, 2,
             int idxb = (i+1) % 3; // 1, 2, 0
@@ -908,17 +908,17 @@ int fit_quad(apriltag_detector_t *td, image_u8_t *im, zarray_t *cluster, struct 
 
     // reject quads whose cumulative angle change isn't equal to 2PI
     if (1) {
-        double total = 0;
+        float total = 0;
 
         for (int i = 0; i < 4; i++) {
             int i0 = i, i1 = (i+1)&3, i2 = (i+2)&3;
 
-            double theta0 = atan2f(quad->p[i0][1] - quad->p[i1][1],
+            float theta0 = atan2f(quad->p[i0][1] - quad->p[i1][1],
                                    quad->p[i0][0] - quad->p[i1][0]);
-            double theta1 = atan2f(quad->p[i2][1] - quad->p[i1][1],
+            float theta1 = atan2f(quad->p[i2][1] - quad->p[i1][1],
                                    quad->p[i2][0] - quad->p[i1][0]);
 
-            double dtheta = theta0 - theta1;
+            float dtheta = theta0 - theta1;
             if (dtheta < 0)
                 dtheta += 2*M_PI;
 
@@ -939,7 +939,7 @@ int fit_quad(apriltag_detector_t *td, image_u8_t *im, zarray_t *cluster, struct 
     // coordinates in which (0,0) is the lower left corner. But each
     // pixel actually spans from to [x, x+1), [y, y+1) the mean value of which
     // is +.5 higher than x & y.
-/*    double delta = .5;
+/*    float delta = .5;
       for (int i = 0; i < 4; i++) {
       quad->p[i][0] += delta;
       quad->p[i][1] += delta;

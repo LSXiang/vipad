@@ -18,8 +18,8 @@ using namespace cv;
 using namespace apriltag;
 using namespace vipad;
 
-// void getRelativeTransform(double tag_size, double fx, double fy, double px, double py, double p[4][2]);
-// void getRelativeTransform2(double tag_size, double fx, double fy, double cx, double cy, double p[4][2]);
+// void getRelativeTransform(float tag_size, float fx, float fy, float px, float py, float p[4][2]);
+// void getRelativeTransform2(float tag_size, float fx, float fy, float cx, float cy, float p[4][2]);
 // 
 // int main(int argc, char *argv[])
 // {
@@ -80,7 +80,7 @@ using namespace vipad;
 //             ss << det->id;
 //             String text = ss.str();
 //             int fontface = FONT_HERSHEY_SCRIPT_SIMPLEX;
-//             double fontscale = 1.0;
+//             float fontscale = 1.0;
 //             int baseline;
 //             Size textsize = getTextSize(text, fontface, fontscale, 2,
 //                                             &baseline);
@@ -129,13 +129,13 @@ using namespace vipad;
 //             chrono::steady_clock::time_point t1 = chrono::steady_clock::now();
 //             getRelativeTransform(0.1, 2.4908279215754123e+03, 2.4935314568583112e+03, 3.4745731382095448e+02, 2.4094331871742105e+02, det->p);
 //             chrono::steady_clock::time_point t2 = chrono::steady_clock::now();
-//             chrono::duration<double> time_used = chrono::duration_cast<chrono::duration<double>> (t2 - t1);
+//             chrono::duration<float> time_used = chrono::duration_cast<chrono::duration<float>> (t2 - t1);
 //             std::cout << "opencv pnp cost time: " << time_used.count() << std::endl;
 //             
 //             t1 = chrono::steady_clock::now();
 //             getRelativeTransform2(0.1, 2.4908279215754123e+03, 2.4935314568583112e+03, 3.4745731382095448e+02, 2.4094331871742105e+02, det->p);
 //             t2 = chrono::steady_clock::now();
-//             chrono::duration<double> time_used2 = chrono::duration_cast<chrono::duration<double>> (t2 - t1);
+//             chrono::duration<float> time_used2 = chrono::duration_cast<chrono::duration<float>> (t2 - t1);
 //             std::cout << "ippe cost time: " << time_used2.count() << std::endl;
 //             
 //             std::cout << "ippe speed / opencv speed :" << time_used.count() / time_used2.count() << endl;
@@ -159,11 +159,11 @@ using namespace vipad;
 //     return 0;
 // }
 
-void getRelativeTransform(double tag_size, double fx, double fy, double px, double py, double p[4][2])
+void getRelativeTransform(float tag_size, float fx, float fy, float px, float py, float p[4][2])
 {
     std::vector<cv::Point3f> objPts;
     std::vector<cv::Point2f> imgPts;
-    double s = tag_size/2.;
+    float s = tag_size/2.;
     objPts.push_back(cv::Point3f(-s,-s, 0));
     objPts.push_back(cv::Point3f( s,-s, 0));
     objPts.push_back(cv::Point3f( s, s, 0));
@@ -182,7 +182,7 @@ void getRelativeTransform(double tag_size, double fx, double fy, double px, doub
                             0, fy, py,
                             0,  0,  1);
 //     cv::Vec4d distParam(0,0,0,0);
-    double dist[] = {-5.0968287369808518e-02, -8.0252844113471298e+01, -1.5334326534795978e-03, -1.8098396142340031e-02,  -1.0045140113684745e+00};
+    float dist[] = {-5.0968287369808518e-02, -8.0252844113471298e+01, -1.5334326534795978e-03, -1.8098396142340031e-02,  -1.0045140113684745e+00};
     cv::Mat distParam = cv::Mat(1, 5, CV_64FC1, dist);
     cv::solvePnP(objPts, imgPts, cameraMatrix, distParam, rvec, tvec);
     cv::Matx33d r;
@@ -193,17 +193,17 @@ void getRelativeTransform(double tag_size, double fx, double fy, double px, doub
 // 
 //   Eigen::Matrix4d T; 
 //   T.topLeftCorner(3,3) = wRo;
-//   T.col(3).head(3) << tvec.at<double>(0), tvec.at<double>(1), tvec.at<double>(2);
+//   T.col(3).head(3) << tvec.at<float>(0), tvec.at<float>(1), tvec.at<float>(2);
 //   T.row(3) << 0,0,0,1;
 // 
 //   return T;
     
-    cv::Vec3d t(tvec.at<double>(0), tvec.at<double>(1), tvec.at<double>(2));
+    cv::Vec3d t(tvec.at<float>(0), tvec.at<float>(1), tvec.at<float>(2));
     
     /* T.inv -> t = -r.inv * t */
-//     cv::Matx44d T(r(0, 0), r(0, 1), r(0, 2), tvec.at<double>(0),
-//                   r(1, 0), r(1, 1), r(1, 2), tvec.at<double>(1),
-//                   r(2, 0), r(2, 1), r(2, 2), tvec.at<double>(2),
+//     cv::Matx44d T(r(0, 0), r(0, 1), r(0, 2), tvec.at<float>(0),
+//                   r(1, 0), r(1, 1), r(1, 2), tvec.at<float>(1),
+//                   r(2, 0), r(2, 1), r(2, 2), tvec.at<float>(2),
 //                         0,       0,       0,                 1);
 //     cv::Matx44d Tinv = T.inv();
 //     cout << "x y z @@@@@@@ :" << Tinv(0, 3) <<  ",\t" << Tinv(1, 3) << ",\t" << Tinv(2, 3) << endl;
@@ -211,12 +211,12 @@ void getRelativeTransform(double tag_size, double fx, double fy, double px, doub
     
     cout << "x y z #### : " << ttt[0] <<  ",\t" << ttt[1] << ",\t" << ttt[2] << endl;
   
-//     cout << "x y z ------ : " << tvec.at<double>(0) <<  ",\t" << tvec.at<double>(1) << ",\t" << tvec.at<double>(2) << endl;
+//     cout << "x y z ------ : " << tvec.at<float>(0) <<  ",\t" << tvec.at<float>(1) << ",\t" << tvec.at<float>(2) << endl;
 //     cout << "R ------ : " << r << endl;
 //     cout << "yaw ------ :" << std::atan2<float>(r(1, 0), r(0, 0)) * 57.3 << endl;    
 }
 
-void getRelativeTransform2(double tag_size, double fx, double fy, double cx, double cy, double p[4][2])
+void getRelativeTransform2(float tag_size, float fx, float fy, float cx, float cy, float p[4][2])
 {
     matd_t *imagePoints;
     matd_t *cameraMatrix, *distParam;
@@ -229,7 +229,7 @@ void getRelativeTransform2(double tag_size, double fx, double fy, double cx, dou
     MATD_EL(cameraMatrix, 1, 1) = fy;
     MATD_EL(cameraMatrix, 1, 2) = cy;
     
-    double dist[] = {-5.0968287369808518e-02, -8.0252844113471298e+01, -1.5334326534795978e-03, -1.8098396142340031e-02,  -1.0045140113684745e+00};
+    float dist[] = {-5.0968287369808518e-02, -8.0252844113471298e+01, -1.5334326534795978e-03, -1.8098396142340031e-02,  -1.0045140113684745e+00};
     distParam = matd_create_data(1, 5, dist);
     
     matd_t *R = NULL, *t = NULL;

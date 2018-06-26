@@ -40,7 +40,7 @@ either expressed or implied, of the Regents of The University of Michigan.
 namespace apriltag {
 
 /**
- * Defines a matrix structure for holding double-precision values with
+ * Defines a matrix structure for holding float-precision values with
  * data in row-major order (i.e. index = row*ncols + col).
  *
  * nrows and ncols are 1-based counts with the exception that a scalar (non-matrix)
@@ -49,11 +49,11 @@ namespace apriltag {
 typedef struct
 {
     unsigned int nrows, ncols;
-//     double data[];
-    double *data;
+//     float data[];
+    float *data;
 } matd_t;
 
-#define MATD_ALLOC(name, nrows, ncols) double name ## _storage [nrows*ncols]; matd_t name = { .nrows = nrows, .ncols = ncols, .data = &name ## _storage };
+#define MATD_ALLOC(name, nrows, ncols) float name ## _storage [nrows*ncols]; matd_t name = { .nrows = nrows, .ncols = ncols, .data = &name ## _storage };
 
 /**
  * Defines a small value which can be used in place of zero for approximating
@@ -69,7 +69,7 @@ typedef struct
 #define MATD_EL(m, row, col) (m)->data[((row)*(m)->ncols + (col))]
 
 /**
- * Creates a double matrix with the given number of rows and columns (or a scalar
+ * Creates a float matrix with the given number of rows and columns (or a scalar
  * in the case where rows=0 and/or cols=0). All data elements will be initialized
  * to zero. It is the caller's responsibility to call matd_destroy() on the
  * returned matrix.
@@ -77,16 +77,16 @@ typedef struct
 matd_t *matd_create(int rows, int cols);
 
 /**
- * Creates a double matrix with the given number of rows and columns (or a scalar
+ * Creates a float matrix with the given number of rows and columns (or a scalar
  * in the case where rows=0 and/or cols=0). All data elements will be initialized
  * using the supplied array of data, which must contain at least rows*cols elements,
  * arranged in row-major order (i.e. index = row*ncols + col). It is the caller's
  * responsibility to call matd_destroy() on the returned matrix.
  */
-matd_t *matd_create_data(int rows, int cols, const double *data);
+matd_t *matd_create_data(int rows, int cols, const float *data);
 
 /**
- * Creates a double matrix with the given number of rows and columns (or a scalar
+ * Creates a float matrix with the given number of rows and columns (or a scalar
  * in the case where rows=0 and/or cols=0). All data elements will be initialized
  * using the supplied array of float data, which must contain at least rows*cols elements,
  * arranged in row-major order (i.e. index = row*ncols + col). It is the caller's
@@ -111,31 +111,31 @@ matd_t *matd_identity(int dim);
  * and B must both have specific dimensions. However, if A is a
  * scalar, there are no restrictions on the size of B.
  */
-matd_t *matd_create_scalar(double v);
+matd_t *matd_create_scalar(float v);
 
 /**
  * Retrieves the cell value for matrix 'm' at the given zero-based row and column index.
  * Performs more thorough validation checking than MATD_EL().
  */
-double matd_get(const matd_t *m, int row, int col);
+float matd_get(const matd_t *m, int row, int col);
 
 /**
  * Assigns the given value to the matrix cell at the given zero-based row and
  * column index. Performs more thorough validation checking than MATD_EL().
  */
-void matd_put(matd_t *m, int row, int col, double value);
+void matd_put(matd_t *m, int row, int col, float value);
 
 /**
  * Retrieves the scalar value of the given element ('m' must be a scalar).
  * Performs more thorough validation checking than MATD_EL().
  */
-double matd_get_scalar(const matd_t *m);
+float matd_get_scalar(const matd_t *m);
 
 /**
  * Assigns the given value to the supplied scalar element ('m' must be a scalar).
  * Performs more thorough validation checking than MATD_EL().
  */
-void matd_put_scalar(matd_t *m, double value);
+void matd_put_scalar(matd_t *m, float value);
 
 /**
  * Creates an exact copy of the supplied matrix 'm'. It is the caller's
@@ -202,13 +202,13 @@ void matd_subtract_inplace(matd_t *a, const matd_t *b);
  * returns the result as a new matrix of the same dimensions. It is the caller's
  * responsibility to call matd_destroy() on the returned matrix.
  */
-matd_t *matd_scale(const matd_t *a, double s);
+matd_t *matd_scale(const matd_t *a, float s);
 
 /**
  * Scales all cell values of matrix 'a' by the given scale factor 's' and
  * overwrites the contents of 'a' with the results.
  */
-void matd_scale_inplace(matd_t *a, double s);
+void matd_scale_inplace(matd_t *a, float s);
 
 /**
  * Multiplies the two supplied matrices together (matrix product), and returns the
@@ -228,7 +228,7 @@ matd_t *matd_transpose(const matd_t *a);
 /**
  * Calculates the determinant of the supplied matrix 'a'.
  */
-double matd_det(const matd_t *a);
+float matd_det(const matd_t *a);
 
 /**
  * Attempts to compute an inverse of the supplied matrix 'a' and return it as
@@ -242,9 +242,9 @@ double matd_det(const matd_t *a);
  **/
 matd_t *matd_inverse(const matd_t *a);
 
-static inline void matd_set_data(matd_t *m, const double *data)
+static inline void matd_set_data(matd_t *m, const float *data)
 {
-    memcpy(m->data, data, m->nrows * m->ncols * sizeof(double));
+    memcpy(m->data, data, m->nrows * m->ncols * sizeof(float));
 }
 
 /**
@@ -281,27 +281,27 @@ static inline int matd_is_vector_len(const matd_t *a, int len)
 /**
  * Calculates the magnitude of the supplied matrix 'a'.
  */
-double matd_vec_mag(const matd_t *a);
+float matd_vec_mag(const matd_t *a);
 
 /**
  * Calculates the magnitude of the distance between the points represented by
  * matrices 'a' and 'b'. Both 'a' and 'b' must be vectors and have the same
  * dimension (although one may be a row vector and one may be a column vector).
  */
-double matd_vec_dist(const matd_t *a, const matd_t *b);
+float matd_vec_dist(const matd_t *a, const matd_t *b);
 
 
 /**
  * Same as matd_vec_dist, but only uses the first 'n' terms to compute distance
  */
-double matd_vec_dist_n(const matd_t *a, const matd_t *b, int n);
+float matd_vec_dist_n(const matd_t *a, const matd_t *b, int n);
 
 /**
  * Calculates the dot product of two vectors. Both 'a' and 'b' must be vectors
  * and have the same dimension (although one may be a row vector and one may be
  * a column vector).
  */
-double matd_vec_dot_product(const matd_t *a, const matd_t *b);
+float matd_vec_dot_product(const matd_t *a, const matd_t *b);
 
 /**
  * Calculates the normalization of the supplied vector 'a' (i.e. a unit vector
@@ -320,7 +320,7 @@ matd_t *matd_vec_normalize(const matd_t *a);
  */
 matd_t *matd_crossproduct(const matd_t *a, const matd_t *b);
 
-double matd_err_inf(const matd_t *a, const matd_t *b);
+float matd_err_inf(const matd_t *a, const matd_t *b);
 
 /**
  * Creates a new matrix by applying a series of matrix operations, as expressed
@@ -384,7 +384,7 @@ typedef struct
 
 matd_plu_t *matd_plu(const matd_t *a);
 void matd_plu_destroy(matd_plu_t *mlu);
-double matd_plu_det(const matd_plu_t *lu);
+float matd_plu_det(const matd_plu_t *lu);
 matd_t *matd_plu_p(const matd_plu_t *lu);
 matd_t *matd_plu_l(const matd_plu_t *lu);
 matd_t *matd_plu_u(const matd_plu_t *lu);
@@ -397,7 +397,7 @@ matd_t *matd_solve(matd_t *A, matd_t *b);
 // Cholesky Factorization
 
 /**
- * Creates a double matrix with the Cholesky lower triangular matrix
+ * Creates a float matrix with the Cholesky lower triangular matrix
  * of A. A must be symmetric, positive definite. It is the caller's
  * responsibility to call matd_destroy() on the returned matrix.
  */
@@ -415,12 +415,12 @@ void matd_chol_destroy(matd_chol_t *chol);
 // only sensible on PSD matrices
 matd_t *matd_chol_inverse(matd_t *a);
 
-void matd_ltransposetriangle_solve(matd_t *u, const double *b, double *x);
-void matd_ltriangle_solve(matd_t *u, const double *b, double *x);
-void matd_utriangle_solve(matd_t *u, const double *b, double *x);
+void matd_ltransposetriangle_solve(matd_t *u, const float *b, float *x);
+void matd_ltriangle_solve(matd_t *u, const float *b, float *x);
+void matd_utriangle_solve(matd_t *u, const float *b, float *x);
 
 
-double matd_max(matd_t *m);
+float matd_max(matd_t *m);
 
 } /* namespace apriltag */
 

@@ -192,11 +192,11 @@ struct apriltag_detection
     matd_t *H;
 
     // The center of the detection in image pixel coordinates.
-    double c[2];
+    float c[2];
 
     // The corners of the tag in image pixel coordinates. These always
     // wrap counter-clock wise around the tag.
-    double p[4][2];
+    float p[4][2];
 };
 
 typedef struct image_u8 image_u8_t;

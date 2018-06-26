@@ -130,12 +130,12 @@ namespace apriltag {
 
 matd_t *homography_compute(zarray_t *correspondences);
 
-//void homography_project(const matd_t *H, double x, double y, double *ox, double *oy);
-static inline void homography_project(const matd_t *H, double x, double y, double *ox, double *oy)
+//void homography_project(const matd_t *H, float x, float y, float *ox, float *oy);
+static inline void homography_project(const matd_t *H, float x, float y, float *ox, float *oy)
 {
-    double xx = MATD_EL(H, 0, 0)*x + MATD_EL(H, 0, 1)*y + MATD_EL(H, 0, 2);
-    double yy = MATD_EL(H, 1, 0)*x + MATD_EL(H, 1, 1)*y + MATD_EL(H, 1, 2);
-    double zz = MATD_EL(H, 2, 0)*x + MATD_EL(H, 2, 1)*y + MATD_EL(H, 2, 2);
+    float xx = MATD_EL(H, 0, 0)*x + MATD_EL(H, 0, 1)*y + MATD_EL(H, 0, 2);
+    float yy = MATD_EL(H, 1, 0)*x + MATD_EL(H, 1, 1)*y + MATD_EL(H, 1, 2);
+    float zz = MATD_EL(H, 2, 0)*x + MATD_EL(H, 2, 1)*y + MATD_EL(H, 2, 2);
 
     *ox = xx / zz;
     *oy = yy / zz;

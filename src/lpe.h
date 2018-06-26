@@ -80,8 +80,8 @@ struct lpe_params
 	uint32_t width;
 	uint32_t height;
 
-	double fx, fy, cx, cy;
-	double k1, k2, p1, p2, k3;
+	float fx, fy, cx, cy;
+	float k1, k2, p1, p2, k3;
 
 	cam2droneRotation angle;
 	Quaternion *q;
