@@ -134,18 +134,18 @@ static inline void ptsort(struct pt *pts, int sz)
 
     // a merge sort with temp storage.
 
-    // Use stack storage if it's not too big.
-    int stacksz = sz;
-    if (stacksz > 1024)
-        stacksz = 0;
-
-    struct pt _tmp_stack[stacksz];
-    struct pt *tmp = _tmp_stack;
-
-    if (stacksz == 0) {
-        // it was too big, malloc it instead.
-        tmp = (struct pt *)apriltagMalloc(sizeof(struct pt) * sz);
-    }
+//     // Use stack storage if it's not too big.
+//     int stacksz = sz;
+//     if (stacksz > 1024)
+//         stacksz = 0;
+// 
+//     struct pt _tmp_stack[stacksz];
+//     struct pt *tmp = _tmp_stack;
+// 
+//     if (stacksz == 0) {
+//         // it was too big, malloc it instead.
+        struct pt *tmp = (struct pt *)apriltagMalloc(sizeof(struct pt) * sz);
+//     }
 
     memcpy(tmp, pts, sizeof(struct pt) * sz);
 
@@ -179,7 +179,7 @@ static inline void ptsort(struct pt *pts, int sz)
     if (bpos < bsz)
         memcpy(&pts[outpos], &bs[bpos], (bsz-bpos)*sizeof(struct pt));
 
-    if (stacksz == 0)
+//     if (stacksz == 0)
         apriltagFree(tmp);
 
 #undef MERGE
@@ -446,6 +446,7 @@ int quad_segment_maxima(apriltag_detector_t *td, zarray_t *cluster, struct line_
     int max_nmaxima = td->qtp.max_nmaxima;
 
     if (nmaxima > max_nmaxima) {
+//         printf ("nmaxima : %5d \r\n", nmaxima);
 //         double maxima_errs_copy[nmaxima];
         double *maxima_errs_copy = (double *)apriltagMalloc(nmaxima * sizeof(double));
         memcpy(maxima_errs_copy, maxima_errs, nmaxima * sizeof(double));
