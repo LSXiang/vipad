@@ -358,29 +358,6 @@ matd_t *matd_op(const char *expr, ...);
  */
 void matd_destroy(matd_t *m);
 
-typedef struct
-{
-    matd_t *U;
-    matd_t *S;
-    matd_t *V;
-} matd_svd_t;
-
-/** Compute a complete SVD of a matrix. The SVD exists for all
- * matrices. For a matrix MxN, we will have:
- *
- * A = U*S*V'
- *
- * where A is MxN, U is MxM (and is an orthonormal basis), S is MxN
- * (and is diagonal up to machine precision), and V is NxN (and is an
- * orthonormal basis).
- *
- * The caller is responsible for destroying U, S, and V.
- **/
-matd_svd_t matd_svd(matd_t *A);
-
-#define MATD_SVD_NO_WARNINGS 1
-    matd_svd_t matd_svd_flags(matd_t *A, int flags);
-
 ////////////////////////////////
 // PLU Decomposition
 
