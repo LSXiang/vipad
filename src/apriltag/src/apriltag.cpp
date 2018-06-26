@@ -448,10 +448,11 @@ int quad_update_homographies(struct quad *quad)
         matd_destroy(quad->H);
 
     // XXX Tunable
-    quad->H = homography_compute(correspondences, HOMOGRAPHY_COMPUTE_FLAG_SVD);
+    quad->H = homography_compute(correspondences, HOMOGRAPHY_COMPUTE_FLAG_INVERSE);
+    
     zarray_destroy(correspondences);
     
-    if (quad->H) // && quad->Hinv)
+    if (quad->H)
         return 0;
 
     return -1;

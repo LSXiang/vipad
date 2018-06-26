@@ -178,19 +178,33 @@ matd_t *homography_compute(zarray_t *correspondences, int flags)
     if (flags & HOMOGRAPHY_COMPUTE_FLAG_INVERSE) {
         // compute singular vector by (carefully) inverting the rank-deficient matrix.
 
-        if (1) {
+        if (0) {
+            printf("-------------------1 \r\n");
+            fflush(stdout);
             matd_t *Ainv = matd_inverse(A);
             double scale = 0;
+            printf("-------------------2 \r\n");
+            fflush(stdout);
+            
+            if (Ainv == NULL)
+                return NULL;
 
             for (int i = 0; i < 9; i++)
                 scale += sq(MATD_EL(Ainv, i, 0));
+            printf("-------------------3 \r\n");
+
             scale = sqrt(scale);
+            
+            printf("-------------------3 \r\n");
 
             for (int i = 0; i < 3; i++)
                 for (int j = 0; j < 3; j++)
                     MATD_EL(H, i, j) = MATD_EL(Ainv, 3*i+j, 0) / scale;
-
+            printf("-------------------4 \r\n");
+            fflush(stdout);
             matd_destroy(Ainv);
+            printf("-------------------5 \r\n");
+            fflush(stdout);
         } else {
 
             double data[] = { 1, 0, 0, 0, 0, 0, 0, 0, 0 };
@@ -222,16 +236,16 @@ matd_t *homography_compute(zarray_t *correspondences, int flags)
         }
 
     } else {
-        // compute singular vector using SVD. A bit slower, but more accurate.
-        matd_svd_t svd = matd_svd_flags(A, MATD_SVD_NO_WARNINGS);
-
-        for (int i = 0; i < 3; i++)
-            for (int j = 0; j < 3; j++)
-                MATD_EL(H, i, j) = MATD_EL(svd.U, 3*i+j, 8);
-
-        matd_destroy(svd.U);
-        matd_destroy(svd.S);
-        matd_destroy(svd.V);
+//         // compute singular vector using SVD. A bit slower, but more accurate.
+//         matd_svd_t svd = matd_svd_flags(A, MATD_SVD_NO_WARNINGS);
+// 
+//         for (int i = 0; i < 3; i++)
+//             for (int j = 0; j < 3; j++)
+//                 MATD_EL(H, i, j) = MATD_EL(svd.U, 3*i+j, 8);
+// 
+//         matd_destroy(svd.U);
+//         matd_destroy(svd.S);
+//         matd_destroy(svd.V);
 
     }
 
