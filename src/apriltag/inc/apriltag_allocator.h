@@ -33,6 +33,7 @@
 #define __APRILTAG_ALLOCATOR_H__
 
 #include <stdlib.h>
+#include <stdio.h>
 
 namespace apriltag {
 

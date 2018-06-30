@@ -264,19 +264,30 @@ int main(int argc, char **argv)
     
     param.angle = ClockwiseAngle_270;
     
-    param.fx = 2.4908279215754123e+03;
-    param.fy = 2.4935314568583112e+03;
-    param.cx = 3.4745731382095448e+02;
-    param.cy = 2.4094331871742105e+02;
+//     param.fx = 2.4908279215754123e+03;
+//     param.fy = 2.4935314568583112e+03;
+//     param.cx = 3.4745731382095448e+02;
+//     param.cy = 2.4094331871742105e+02;
+//     
+//     param.k1 = -5.0968287369808518e-02;
+//     param.k2 = -8.0252844113471298e+01;
+//     param.p1 = -1.5334326534795978e-03;
+//     param.p2 = -1.8098396142340031e-02;
+//     param.k3 = -1.0045140113684745e+00;
     
-    param.k1 = -5.0968287369808518e-02;
-    param.k2 = -8.0252844113471298e+01;
-    param.p1 = -1.5334326534795978e-03;
-    param.p2 = -1.8098396142340031e-02;
-    param.k3 = -1.0045140113684745e+00;
+    param.fx = 4.4208943041154714e+02 / 4;
+    param.fy = 4.4241613130483989e+02 / 4;
+    param.cx = 3.2103104558965657e+02 / 4;
+    param.cy = 2.4049214702014103e+02 / 4;
+    
+    param.k1 = 2.2974810891907303e-02;
+    param.k2 = -1.6576845327552969e-01;
+    param.p1 = -4.0782409518393070e-05;
+    param.p2 = -5.7000919704701235e-03;
+    param.k3 = 2.2850168365880927e-01;
     
     param.tag_type = tag36h11;
-    param.marker_length = 0.1f;
+    param.marker_length = 0.25f;
     
     param.q = NULL;
     param.locat = &locat;
@@ -285,6 +296,8 @@ int main(int argc, char **argv)
     while (true) {
         cap >> frame;
         cvtColor(frame, gray, COLOR_BGR2GRAY);
+        pyrDown(gray, gray, Size(gray.cols / 2, gray.rows / 2));
+        pyrDown(gray, gray, Size(gray.cols / 2, gray.rows / 2));
         
         param.width = gray.cols;
         param.height = gray.rows;
@@ -294,7 +307,7 @@ int main(int argc, char **argv)
         
         est.estimateLocalPosition();
 
-        imshow("Tag Detections", frame);
+        imshow("Tag Detections", gray);
         
         int key = waitKey(1);
         if (key == 27)
