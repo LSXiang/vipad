@@ -174,7 +174,7 @@ static inline void zarray_ensure_capacity(zarray_t *za, int capacity)
             za->alloc = 8;
     }
 
-    za->data = (char*) realloc(za->data, za->alloc * za->el_sz);
+    za->data = (char*) apriltagRealloc(za->data, za->alloc * za->el_sz);
 }
 
 /**
