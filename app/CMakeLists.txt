@@ -19,9 +19,9 @@ target_link_libraries(locationEstimation
     )
 
 # create executable file 
-add_executable(test test.cpp)
+add_executable(vipad_test test.cpp)
 
-target_link_libraries(test 
+target_link_libraries(vipad_test 
     ${OpenCV_LIBS}
     AprilTag_lib
     ippe_lib
