@@ -194,12 +194,15 @@ void LocalPositionEstimation::estimateLocalPosition(void)
 			/* Construct a new rotation matrix using the pose of the IMU data */
 			switch (_param->angle) {
 			case ClockwiseAngle_0:
+                // TODO
 				break;
 
 			case ClockwiseAngle_90:
+                // TODO
 				break;
 
 			case ClockwiseAngle_180:
+                // TODO
 				break;
 
 			case ClockwiseAngle_270: {
@@ -220,6 +223,7 @@ void LocalPositionEstimation::estimateLocalPosition(void)
 				break;
 
 			case ClockwiseAngle360:
+                // TODO
 				break;
 
 			default: {
