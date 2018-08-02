@@ -40,7 +40,8 @@ using namespace apriltag;
 
 namespace vipad {
     
-
+int LocalPositionEstimation::marker_used_id  = 0;
+    
 /* Constructor */
 LocalPositionEstimation::LocalPositionEstimation(void *param) :
 	_marker_family(NULL),
@@ -113,7 +114,8 @@ void LocalPositionEstimation::estimateLocalPosition(void)
 			for (int i = 0; i < tags_number; i++) {
 				zarray_get(detections, i, &det);
 
-				if ((det->id == _param->locat->id) && (det->id < 900)) {
+                if (det->id == marker_used_id) {
+// 				if ((det->id == marker_used_id) && (det->id < 900)) {
 					if ((det->c[0] > width_boundary) &&
 						(det->c[0] < image.width - width_boundary) &&
 						(det->c[1] > height_boundary) &&
@@ -129,7 +131,7 @@ void LocalPositionEstimation::estimateLocalPosition(void)
 		} else {
 			zarray_get(detections, index, &det);
 			update_usedId = false;
-			_param->locat->id = det->id;
+			marker_used_id = det->id;
 		}
 
 		/* whether update trick marker id */
@@ -149,9 +151,11 @@ void LocalPositionEstimation::estimateLocalPosition(void)
 			}
 
 			zarray_get(detections, index, &det);
-			_param->locat->id = det->id;
+			marker_used_id = det->id;
 		}
-
+		
+		_param->locat->id = marker_used_id;
+        
 //		float x_offset = .0f;
 //		float y_offset = .0f;
 //		int marker_length_scale = 1;
@@ -160,7 +164,7 @@ void LocalPositionEstimation::estimateLocalPosition(void)
 //			/* small marker location offset. Reserve code !!!!!!!!!!!!!! */
 //			x_offset = .0f;
 //			y_offset = .0f;
-//			marker_length_scale = 1;
+//			marker_length_scale = 5;
 //		}
 
 		/* estimate location */
@@ -183,9 +187,9 @@ void LocalPositionEstimation::estimateLocalPosition(void)
 
 		if (_param->q == NULL) {
 			matd_t *t_inv = matd_op("-M*M", R_t, t);
-			_param->locat->x = MATD_EL(t_inv, 0, 0);
-			_param->locat->y = MATD_EL(t_inv, 1, 0);
-			_param->locat->z = MATD_EL(t_inv, 2, 0);
+			_param->locat->x =  MATD_EL(t_inv, 0, 0);
+			_param->locat->y = -MATD_EL(t_inv, 1, 0);
+			_param->locat->z = -MATD_EL(t_inv, 2, 0);
 			matd_destroy(t_inv);
 
 			printf("camera local position X Y Z = %.4f, %.4f, %.4f \r\n", _param->locat->x, _param->locat->y, _param->locat->z);
@@ -210,12 +214,12 @@ void LocalPositionEstimation::estimateLocalPosition(void)
 				float pitch = _get_euler_pitch(*_param->q);
 
 				matd_t *R_inv;
-				_eulerAngel2rotationMatrix(roll < 0 ? roll + M_PI : roll - M_PI, -pitch, _param->locat->yaw, R_inv); // maybe need change!!!!!!!
+				_eulerAngel2rotationMatrix(roll, pitch, _param->locat->yaw, R_inv); // maybe need change!!!!!!!
 
 				matd_t *t_inv = matd_op("-M*M", R_inv, t);
-				_param->locat->x = MATD_EL(t_inv, 0, 0);
-				_param->locat->y = MATD_EL(t_inv, 1, 0);
-				_param->locat->z = MATD_EL(t_inv, 2, 0);
+				_param->locat->x =  MATD_EL(t_inv, 0, 0);
+				_param->locat->y = -MATD_EL(t_inv, 1, 0);
+				_param->locat->z = -MATD_EL(t_inv, 2, 0);
 
 				matd_destroy(R_inv);
 				matd_destroy(t_inv);
@@ -229,9 +233,9 @@ void LocalPositionEstimation::estimateLocalPosition(void)
 			default: {
 				printf("Warning: Does not support this rotation angle/ \r\n");
 				matd_t *t_inv = matd_op("-M*M", R_t, t);
-				_param->locat->x = MATD_EL(t_inv, 0, 0);
-				_param->locat->y = MATD_EL(t_inv, 1, 0);
-				_param->locat->z = MATD_EL(t_inv, 2, 0);
+				_param->locat->x =  MATD_EL(t_inv, 0, 0);
+				_param->locat->y = -MATD_EL(t_inv, 1, 0);
+				_param->locat->z = -MATD_EL(t_inv, 2, 0);
 				matd_destroy(t_inv);
 				}
 				break;

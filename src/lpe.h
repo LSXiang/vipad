@@ -182,6 +182,8 @@ private:
     apriltag::matd_t *_camera_matrix, *_dist_param;
 
     struct lpe_params *_param;
+    
+    static int marker_used_id;
 };
 
 
