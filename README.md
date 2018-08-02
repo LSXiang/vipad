@@ -3,7 +3,7 @@ Visual-Inertial Positioning with AprilTag for Drones
 
 ---
 
-# Overview
+## Overview
 The main purpose of the project is to move away from opencv and migrate the MARKER-based visual positioning to CMU or DSP.
 
 Programs in the src folder can be ported to the platform you need without relying on any other libraries. For different 
