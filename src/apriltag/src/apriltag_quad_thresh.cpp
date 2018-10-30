@@ -1015,7 +1015,7 @@ image_u8_t *threshold(apriltag_detector_t *td, image_u8_t *im)
 
     // XXX Tunable. Generally, small tile sizes--- so long as they're
     // large enough to span a single tag edge--- seem to be a winner.
-    const int tilesz = 4;
+    const int tilesz = 32;  // The apriltag library used 4, but the best window for experimental testing is in 32.
 
     // the last (possibly partial) tiles along each row and column will
     // just use the min/max value from the last full tile.
