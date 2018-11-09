@@ -1,5 +1,7 @@
 /**
  * Copyright (c) 2018, The Akatsuki(jacob.lsx). All rights reserved.
+ * Adaptation of tobycollins/IPPE.
+ * https://github.com/tobycollins/IPPE
  * 
  * This software was developed of Akatsuki(jacob.lsx). This software may be
  * available under alternative licensing terms; contact the address above.
