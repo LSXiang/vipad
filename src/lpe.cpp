@@ -282,14 +282,14 @@ void LocalPositionEstimation::estimateVisionLanding() {
   if (tags_number > 0) {
     uint8_t min_index = 0;
     uint8_t min_order;
-    bool last_used_marker_be_finded = false;
-    uint8_t marker_orders[tags_number];
     uint8_t used_marker_order = LANDING_MARKER_NUMBER;
-    uint32_t last_used_marker_index = 0;
 
     apriltag_detection_t *det;
 
     if (tags_number > 1) {
+      bool last_used_marker_be_finded = false;
+      uint8_t marker_orders[tags_number];
+      uint32_t last_used_marker_index = 0;
       for (int i = 0; i < tags_number; ++i) {
         zarray_get(detections, i, &det);
         int j = 0;
