@@ -104,7 +104,7 @@ class LocalPositionEstimation {
   /* estimate local position */
   void estimateLocalPosition(void);
   /* vision landing */
-  void estiamteVisionLanding(void);
+  void estimateVisionLanding(void);
     
  private:
   /**

@@ -265,7 +265,7 @@ static struct LandingMarker g_lending_marker[LANDING_MARKER_NUMBER] = {
 static uint8_t g_last_min_order = 0;
 static uint8_t g_last_min_order_count = 0;
 
-void LocalPositionEstimation::estiamteVisionLanding() {
+void LocalPositionEstimation::estimateVisionLanding() {
   image_u8_t image = {static_cast<int32_t>(_param->width),
                       static_cast<int32_t>(_param->height),
                       static_cast<int32_t>(_param->width),
