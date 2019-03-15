@@ -255,12 +255,16 @@ void LocalPositionEstimation::estimateLocalPosition(void)
 }
 
 /* order the landing marker in ascending length */
-#define LANDING_MARKER_NUMBER   4
+#define LANDING_MARKER_NUMBER   8
 static struct LandingMarker g_lending_marker[LANDING_MARKER_NUMBER] = {
-  {.Id = 91,  .marker_length = 0.02f, .order = 1},
-  {.Id = 172, .marker_length = 0.04f, .order = 2},
-  {.Id = 249, .marker_length = 0.08f, .order = 3},
-  {.Id = 476, .marker_length = 0.16f, .order = 4}
+  {.Id = 91,  .marker_length = 0.059f, .order = 1, .x_offset =  0.f,    .y_offset =  0.f   },
+  {.Id = 172, .marker_length = 0.118f, .order = 2, .x_offset = -0.150f, .y_offset = -0.029f},
+  {.Id = 249, .marker_length = 0.236f, .order = 3, .x_offset = -0.092f, .y_offset =  0.182f},
+  {.Id = 476, .marker_length = 0.471f, .order = 4, .x_offset =  0.330f, .y_offset =  0.065f},
+  {.Id = 105, .marker_length = 0.490f, .order = 5, .x_offset = -2.000f, .y_offset =  2.000f},  // upper right
+  {.Id = 169, .marker_length = 0.490f, .order = 5, .x_offset =  2.000f, .y_offset =  2.000f},  // lower right
+  {.Id = 555, .marker_length = 0.490f, .order = 5, .x_offset = -2.000f, .y_offset = -2.000f},  // upper left
+  {.Id = 548, .marker_length = 0.490f, .order = 5, .x_offset =  2.000f, .y_offset = -2.000f}   // lower left
 };
 static uint8_t g_last_min_order = 0;
 static uint8_t g_last_min_order_count = 0;
@@ -282,26 +286,29 @@ void LocalPositionEstimation::estimateVisionLanding() {
   if (tags_number > 0) {
     uint8_t min_index = 0;
     uint8_t min_order;
-    uint8_t used_marker_order = LANDING_MARKER_NUMBER;
-
+    uint8_t used_marker_order = g_lending_marker[LANDING_MARKER_NUMBER - 1].order;  // get the largest order
     apriltag_detection_t *det;
 
-    if (tags_number > 1) {
+    if (tags_number > 1) {  // have >=2 marker be found
       bool last_used_marker_be_finded = false;
       uint8_t marker_orders[tags_number];
       uint32_t last_used_marker_index = 0;
+      
+      /* for each be found marker set order using the g_lending_marker table rules*/
       for (int i = 0; i < tags_number; ++i) {
         zarray_get(detections, i, &det);
         int j = 0;
+        /* whether the be found markers was in the set of g_lending_marker */
         for (; j < LANDING_MARKER_NUMBER; ++j) {
           if (det->id == g_lending_marker[j].Id) {
             marker_orders[i] = g_lending_marker[j].order;
             break;
           }
         }
-        if (j == LANDING_MARKER_NUMBER)
-          marker_orders[i] = LANDING_MARKER_NUMBER;
-        
+        if (j == LANDING_MARKER_NUMBER) // not in the set of g_last_min_order
+          marker_orders[i] = g_lending_marker[LANDING_MARKER_NUMBER - 1].order;  // set the value is largest order
+          
+        /* whether last used marker Id can be finded in current frame */
         if (det->id == marker_used_id) {
           last_used_marker_be_finded = true;
           last_used_marker_index = i;
@@ -309,6 +316,7 @@ void LocalPositionEstimation::estimateVisionLanding() {
         }
       }
       
+      // find the minimum size marker in current frame 
       min_order = marker_orders[0];
       for (int i = 1; i < tags_number; ++i) {
         if (min_order > marker_orders[i]) {
@@ -317,6 +325,10 @@ void LocalPositionEstimation::estimateVisionLanding() {
         }
       }
       
+      /**
+       * if the same ID marker that size is small than last used marker be detected 3 times,
+       * we change use the small size marker to play the vision landing.
+       */
       if (last_used_marker_be_finded) {
         if (g_last_min_order == min_order) {
           ++ g_last_min_order_count;
@@ -339,9 +351,8 @@ void LocalPositionEstimation::estimateVisionLanding() {
         zarray_get(detections, min_index, &det);
         marker_used_id = det->id;
       }
-        
       
-    } else {
+    } else {  // only 1 marker be found
       zarray_get(detections, min_index, &det);
       marker_used_id = det->id;
       int j = 0;
@@ -352,7 +363,7 @@ void LocalPositionEstimation::estimateVisionLanding() {
         }
       }
       if (j == LANDING_MARKER_NUMBER)
-        min_order = LANDING_MARKER_NUMBER;
+        min_order = g_lending_marker[LANDING_MARKER_NUMBER - 1].order;  // set the value is largest order;
       g_last_min_order = min_order;
       used_marker_order = min_order;
       g_last_min_order_count = 0;
@@ -379,8 +390,8 @@ void LocalPositionEstimation::estimateVisionLanding() {
 
     if (_param->q == NULL) {
       matd_t *t_inv = matd_op("-M*M", R_t, t);
-      _param->locat->x =  MATD_EL(t_inv, 0, 0);
-      _param->locat->y = -MATD_EL(t_inv, 1, 0);
+      _param->locat->x =  MATD_EL(t_inv, 0, 0) + g_lending_marker[used_marker_order-1].x_offset;
+      _param->locat->y = -MATD_EL(t_inv, 1, 0) + g_lending_marker[used_marker_order-1].y_offset;
       _param->locat->z = -MATD_EL(t_inv, 2, 0);
       matd_destroy(t_inv);
 
@@ -409,8 +420,8 @@ void LocalPositionEstimation::estimateVisionLanding() {
         _eulerAngel2rotationMatrix(roll, pitch, _param->locat->yaw, R_inv); // maybe need change!!!!!!!
 
         matd_t *t_inv = matd_op("-M*M", R_inv, t);
-        _param->locat->x =  MATD_EL(t_inv, 0, 0);
-        _param->locat->y = -MATD_EL(t_inv, 1, 0);
+        _param->locat->x =  MATD_EL(t_inv, 0, 0) + g_lending_marker[used_marker_order-1].x_offset;
+        _param->locat->y = -MATD_EL(t_inv, 1, 0) + g_lending_marker[used_marker_order-1].y_offset;
         _param->locat->z = -MATD_EL(t_inv, 2, 0);
 
         matd_destroy(R_inv);
@@ -425,8 +436,8 @@ void LocalPositionEstimation::estimateVisionLanding() {
       default: {
         printf("Warning: Does not support this rotation angle/ \r\n");
         matd_t *t_inv = matd_op("-M*M", R_t, t);
-        _param->locat->x =  MATD_EL(t_inv, 0, 0);
-        _param->locat->y = -MATD_EL(t_inv, 1, 0);
+        _param->locat->x =  MATD_EL(t_inv, 0, 0) + g_lending_marker[used_marker_order-1].x_offset;
+        _param->locat->y = -MATD_EL(t_inv, 1, 0) + g_lending_marker[used_marker_order-1].y_offset;
         _param->locat->z = -MATD_EL(t_inv, 2, 0);
         matd_destroy(t_inv);
         }

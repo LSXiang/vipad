@@ -92,6 +92,8 @@ struct LandingMarker {
   uint32_t Id;
   float marker_length;
   uint8_t order;
+  float x_offset;
+  float y_offset;
 };
 
 class LocalPositionEstimation {

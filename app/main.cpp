@@ -311,7 +311,7 @@ int main(int argc, char **argv)
         static LocalPositionEstimation est(&param);
         
 //         est.estimateLocalPosition();
-        est.estiamteVisionLanding();
+        est.estimateVisionLanding();
 
         imshow("Tag Detections", gray);
         
