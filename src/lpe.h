@@ -107,6 +107,11 @@ class LocalPositionEstimation {
   void estimateLocalPosition(void);
   /* vision landing */
   void estimateVisionLanding(void);
+  
+  #define NormRadAngle(x) { \
+      while (x > M_PI) x -= 2 * M_PI; \
+      while (x < -M_PI) x += 2 * M_PI; \
+    }
     
  private:
   /**

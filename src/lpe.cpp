@@ -181,7 +181,6 @@ void LocalPositionEstimation::estimateLocalPosition(void)
 
     matd_t *R_t = matd_transpose(R);
     _param->locat->yaw = _get_euler_yaw(R_t);
-
     printf("camera yaw angle = %.4f rad (%.2f deg) \r\n", _param->locat->yaw, _param->locat->yaw / M_PI * 180);
 
     if (_param->q == NULL) {
@@ -262,9 +261,9 @@ static struct LandingMarker g_lending_marker[LANDING_MARKER_NUMBER] = {
   {.Id = 249, .marker_length = 0.236f, .order = 3, .x_offset = -0.092f, .y_offset =  0.182f},
   {.Id = 476, .marker_length = 0.471f, .order = 4, .x_offset =  0.330f, .y_offset =  0.065f},
   {.Id = 105, .marker_length = 0.490f, .order = 5, .x_offset = -2.000f, .y_offset =  2.000f},  // upper right
-  {.Id = 169, .marker_length = 0.490f, .order = 5, .x_offset =  2.000f, .y_offset =  2.000f},  // lower right
-  {.Id = 555, .marker_length = 0.490f, .order = 5, .x_offset = -2.000f, .y_offset = -2.000f},  // upper left
-  {.Id = 548, .marker_length = 0.490f, .order = 5, .x_offset =  2.000f, .y_offset = -2.000f}   // lower left
+  {.Id = 169, .marker_length = 0.490f, .order = 6, .x_offset =  2.000f, .y_offset =  2.000f},  // lower right
+  {.Id = 555, .marker_length = 0.490f, .order = 7, .x_offset = -2.000f, .y_offset = -2.000f},  // upper left
+  {.Id = 548, .marker_length = 0.490f, .order = 8, .x_offset =  2.000f, .y_offset = -2.000f}   // lower left
 };
 static uint8_t g_last_min_order = 0;
 static uint8_t g_last_min_order_count = 0;
@@ -393,6 +392,7 @@ void LocalPositionEstimation::estimateVisionLanding() {
       _param->locat->x =  MATD_EL(t_inv, 0, 0) + g_lending_marker[used_marker_order-1].x_offset;
       _param->locat->y = -MATD_EL(t_inv, 1, 0) + g_lending_marker[used_marker_order-1].y_offset;
       _param->locat->z = -MATD_EL(t_inv, 2, 0);
+      _param->locat->x = -_param->locat->x;
       matd_destroy(t_inv);
 
       printf("camera local position X Y Z = %.4f, %.4f, %.4f \r\n", _param->locat->x, _param->locat->y, _param->locat->z);
@@ -423,6 +423,7 @@ void LocalPositionEstimation::estimateVisionLanding() {
         _param->locat->x =  MATD_EL(t_inv, 0, 0) + g_lending_marker[used_marker_order-1].x_offset;
         _param->locat->y = -MATD_EL(t_inv, 1, 0) + g_lending_marker[used_marker_order-1].y_offset;
         _param->locat->z = -MATD_EL(t_inv, 2, 0);
+        _param->locat->x = -_param->locat->x;
 
         matd_destroy(R_inv);
         matd_destroy(t_inv);
@@ -439,12 +440,16 @@ void LocalPositionEstimation::estimateVisionLanding() {
         _param->locat->x =  MATD_EL(t_inv, 0, 0) + g_lending_marker[used_marker_order-1].x_offset;
         _param->locat->y = -MATD_EL(t_inv, 1, 0) + g_lending_marker[used_marker_order-1].y_offset;
         _param->locat->z = -MATD_EL(t_inv, 2, 0);
+        _param->locat->x = -_param->locat->x;
         matd_destroy(t_inv);
         }
         break;
       }
 
       printf("camera local position X Y Z = %.4f, %.4f, %.4f \r\n", _param->locat->x, _param->locat->y, _param->locat->z);
+      
+      _param->locat->yaw += M_PI;
+      NormRadAngle(_param->locat->yaw);
     }
 
     matd_destroy(image_points);
